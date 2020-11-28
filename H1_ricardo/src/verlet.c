@@ -177,7 +177,7 @@ void lattice_velocity_verlet(int n_timesteps, double cell_length, int n_particle
 void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
   int n_particles, double m[n_particles], double v[n_particles][3],
   double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
-  double E[n_timesteps], double virial[n_timesteps], double dt)
+  double E[n_timesteps], double virial[n_timesteps], double dt, unsigned int enable_scaling)
 {
     double a[n_particles][3];
 
@@ -225,20 +225,21 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
         V[i] = get_energy_AL(q, cell_length, n_particles);
         E[i] = T[i] + V[i];
         virial[i] = get_virial_AL(q, cell_length, n_particles);
+        if(enable_scaling){
+            double alpha_t = sqrt(calc_alpha_t(773.15, i*dt, dt*100, dt, T[i], 256));
+    //        double alpha_p = cbrt(calc_alpha_p(624e-7, i*dt, dt*100, dt, kappa, T[i], V[i], 256, cell_length, 4*4*4));
 
-        double alpha_t = sqrt(calc_alpha_t(773.15, i*dt, dt*100, dt, T[i], 256));
-//        double alpha_p = cbrt(calc_alpha_p(624e-7, i*dt, dt*100, dt, kappa, T[i], V[i], 256, cell_length, 4*4*4));
+            for (int j = 0; j < n_particles; j++) {
+                v[j][0] *= alpha_t;
+                v[j][1] *= alpha_t;
+                v[j][2] *= alpha_t;
+    //
+    //            q[j][0] *= alpha_p;
+    //            q[j][1] *= alpha_p;
+    //            q[j][2] *= alpha_p;
 
-        for (int j = 0; j < n_particles; j++) {
-            v[j][0] *= alpha_t;
-            v[j][1] *= alpha_t;
-            v[j][2] *= alpha_t;
-//
-//            q[j][0] *= alpha_p;
-//            q[j][1] *= alpha_p;
-//            q[j][2] *= alpha_p;
-
-//            cell_length *= cbrt(scaling_p);
+    //            cell_length *= cbrt(scaling_p);
+            }
         }
     }
 }
