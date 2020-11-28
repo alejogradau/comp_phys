@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 energy = True
 temperature = True
-
+pressure = True
 
 if energy:
     array = np.genfromtxt('./output/energy.csv', delimiter=',', skip_header=1)
@@ -25,7 +25,7 @@ if energy:
     ax.set_ylabel('Energy (eV)')
     plt.legend()
 
-    fig.savefig('./output/kinetic.pdf')
+    fig.savefig('./output/energy.pdf')
 
 if temperature:
     array = np.genfromtxt('./output/temperature.csv', delimiter=',', skip_header=1)
@@ -38,3 +38,15 @@ if temperature:
     plt.legend()
 
     fig.savefig('./output/temperature.pdf')
+
+if pressure:
+    array = np.genfromtxt('./output/pressure.csv', delimiter=',', skip_header=1)
+
+    fig, ax = plt.subplots(figsize=(10,4))
+    ax.plot(array[:, 0], array[:, 1], label="")
+#    ax.set_title('FCC Lattice')
+    ax.set_xlabel('Time (ps)')
+    ax.set_ylabel('Pressure (??)')
+    plt.legend()
+
+    fig.savefig('./output/pressure.pdf')
