@@ -11,6 +11,7 @@
 #include "H1lattice.h"
 #include "H1potential.h"
 #include "verlet.h"
+#include "H1equilibration.h"
 
 /* Main program */
 int main(int argc, char *argv[])
@@ -91,19 +92,13 @@ int main(int argc, char *argv[])
     lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, virial, dt, enable_scaling);
 
     printf("Calculating Temperature at every time step after verlet and scaling\n");
-    const double kb = 8.617333262145e-5;
-    const double factor = 2/(3*N*kb);
     for(int i = 0; i < n_timesteps; i++){
-        Temp[i] = T[i] * factor;
+        Temp[i] = calc_temp(T[i], N);
     }
 
     printf("Calculating Pressure at every time step after verlet and scaling\n");
-    const double num_cells = pow(Nc, 3.0);
-    const double volume = num_cells*pow(a0, 3.0);
-    const double volume_inv = 1.0/volume;
     for(int i = 0; i < n_timesteps; i++){
-        Pressure[i] = volume_inv * ( (2.0/3.0)*T[i] - virial[i]);
-        Pressure[i] /= 624e-7; //Conversion to bars
+        Pressure[i] = calc_pressure(Nc, a0, T[i], virial[i]);
     }
     
     //Shift Potential and Total Energy so E[0] = 0

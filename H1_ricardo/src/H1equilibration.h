@@ -11,6 +11,8 @@ Header file for H1equilibration.c
 
 extern double calc_temp(double K, double N);
 
+extern double calc_pressure(double Nc, double a0, double T, double virial);
+
 extern double calc_alpha_t(double T_eq, double t, double tau_t, double dt, double K, double N);
 
 extern double calc_alpha_p(double P_eq, double t, double tau_p, double dt, double kappa, double K, double V, double N, double cell_length, double num_cells);
