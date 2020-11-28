@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
     double *E = calloc(n_timesteps+1, sizeof(double));
+    double *virial = calloc(n_timesteps+1, sizeof(double));
     double *Temp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
 
@@ -82,23 +83,27 @@ int main(int argc, char *argv[])
         v_0[i][2] = 0.0;
     }
 
-    printf("Simulating Time Evolution for the Kinetic, Potential, and Total Energy\n");
-    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, dt, enable_scaling);
+    printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
+    printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
+    printf("of velocities and positions are done at each time step.\n");
+    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E,
+      virial, dt, enable_scaling);
 
-    printf("Calculating Temperature at every time step\n");
+    printf("Calculating Temperature at every time step after verlet and scaling\n");
     double kb = 8.617333262145e-5;
     double factor = 2/(3*N*kb);
     for(int i = 0; i < n_timesteps; i++){
         Temp[i] = T[i] * factor;
     }
 
-//    printf("Calculating Pressure at every time step\n");
-//    double num_cells = Nc*Nc*Nc;
-//    double volume = num_cells*pow(a0, 3.0);
-//    for(int i = 0; i < n_timesteps; i++){
-//        Pressure[i] = 1.0/(3.0*volume) * 2.0 *(T[i]-V[i]);
+    printf("Calculating Pressure at every time step after verlet and scaling\n");
+    double num_cells = Nc*Nc*Nc;
+    double volume = num_cells*pow(a0, 3.0);
+    double volume_inv = 1.0/volume
+    for(int i = 0; i < n_timesteps; i++){
+        Pressure[i] = volume_inv * ( (2.0/3.0)*T[i] - virial[i]);
 //        Pressure[i] /= 624e-7; //Conversion to bars
-//    }
+    }
 
 
     printf("Writing Results to Disk\n");

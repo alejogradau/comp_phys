@@ -2,7 +2,7 @@
 verlet.h
 
 Header file for verlet.c
- 
+
 
 */
 
@@ -17,7 +17,10 @@ extern void velocity_verlet(int n_timesteps, int n_particles, double m[n_particl
 extern void lattice_velocity_verlet(int n_timesteps, double cell_length, int n_particles, double m[n_particles], double v[n_particles][3],
                                     double q[n_particles][3], double T[n_timesteps], double V[n_timesteps], double E[n_timesteps], double dt);
 
-extern void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length, int n_particles, double m[n_particles], double v[n_particles][3],
-                                           double q[n_particles][3], double T[n_timesteps], double V[n_timesteps], double E[n_timesteps], double dt, unsigned int enable_scaling);
+extern void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
+  int n_particles, double m[n_particles], double v[n_particles][3],
+  double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
+  double E[n_timesteps], double virial[n_timesteps], double dt,
+  unsigned int enable_scaling);
 
 #endif
