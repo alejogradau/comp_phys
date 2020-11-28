@@ -176,10 +176,11 @@ void lattice_velocity_verlet(int n_timesteps, double cell_length, int n_particle
 void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
   int n_particles, double m[n_particles], double v[n_particles][3],
   double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
-  double E[n_timesteps], double virial[n_timesteps], double dt, unsigned int enable_scaling)
+  double E[n_timesteps], double virial[n_timesteps], double dt, unsigned int enable_scaling, double temp_eq, double pressure_eq)
 {
     double a[n_particles][3];
-
+    double temp_t;
+    
     //Fills array with forces every particle experiences
     get_forces_AL(a, q, cell_length, n_particles);
 
@@ -227,7 +228,8 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
         E[i] = T[i] + V[i];
         virial[i] = get_virial_AL(q, cell_length, n_particles);
         if(enable_scaling){
-            double alpha_t = sqrt(calc_alpha_t(773.15, i*dt, dt*100, dt, T[i], 256));
+            temp_t = calc_temp(T[i], n_particles);
+            double alpha_t = sqrt(calc_alpha_t(temp_t, temp_eq,  dt*100, dt));
     //        double alpha_p = cbrt(calc_alpha_p(624e-7, i*dt, dt*100, dt, kappa, T[i], V[i], 256, cell_length, 4*4*4));
 
             for (int j = 0; j < n_particles; j++) {

@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, virial, dt, enable_scaling);
+    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, virial, dt, enable_scaling, 773.15, 1);
 
     printf("Calculating Temperature at every time step after verlet and scaling\n");
     for(int i = 0; i < n_timesteps; i++){
