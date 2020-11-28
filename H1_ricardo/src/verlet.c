@@ -173,7 +173,6 @@ void lattice_velocity_verlet(int n_timesteps, double cell_length, int n_particle
  * @kappa - Spring constant
  */
 
-
 void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
   int n_particles, double m[n_particles], double v[n_particles][3],
   double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
@@ -181,8 +180,10 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
 {
     double a[n_particles][3];
 
+    //Fills array with forces every particle experiences
     get_forces_AL(a, q, cell_length, n_particles);
 
+    //Divides forces by each particle's mass to obtain their respective accelerations
     for(int i = 0; i < n_particles; i++){
         a[i][0] /= m[i];
         a[i][1] /= m[i];
