@@ -46,3 +46,12 @@ void write_temperatures_file(char *fname, double *time_array, int n_timesteps, d
     }
     fclose(fp);
 }
+
+void calc_time_average(int n_timesteps, double O[], double O_exp[]){
+    double sum_of_O = 0;
+    
+    for(int i = 0; i < n_timesteps; i++){
+            sum_of_O += O[i];
+            O_exp[i] = sum_of_O/(i+1);
+    }
+}

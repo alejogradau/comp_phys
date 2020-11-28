@@ -13,4 +13,6 @@ extern void write_energies_file(char *fname, double *time_array, int n_timesteps
 
 extern void write_temperatures_file(char *fname, double *time_array, int n_timesteps, double Temp[n_timesteps]);
 
+extern void calc_time_average(int n_timesteps, double O[], double O_exp[]);
+
 #endif
