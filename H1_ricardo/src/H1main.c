@@ -47,6 +47,12 @@ int main(int argc, char *argv[])
     printf("Number of time steps:  %d\n", n_timesteps);
     printf("Scaling:               %d\n", enable_scaling);
     
+    //Lattice parameters
+    const unsigned int Nc = 4;
+    const unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
+    const double a0 = 4.030283615073347; //Units?
+    const double L = N*a0;
+    
     double pos[N][3];
     double v_0[N][3];
     double m[N];
@@ -57,12 +63,6 @@ int main(int argc, char *argv[])
     double *virial = calloc(n_timesteps+1, sizeof(double));
     double *Temp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
-        
-    //Lattice parameters
-    unsigned int Nc = 4;
-    unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
-    double a0 = 4.030283615073347; //Units?
-    double L = N*a0;
     
     /* Initial conditions */
     /* Displacements in Ångstroms */
@@ -90,16 +90,16 @@ int main(int argc, char *argv[])
       virial, dt, enable_scaling);
 
     printf("Calculating Temperature at every time step after verlet and scaling\n");
-    double kb = 8.617333262145e-5;
-    double factor = 2/(3*N*kb);
+    const double kb = 8.617333262145e-5;
+    const double factor = 2/(3*N*kb);
     for(int i = 0; i < n_timesteps; i++){
         Temp[i] = T[i] * factor;
     }
 
     printf("Calculating Pressure at every time step after verlet and scaling\n");
-    double num_cells = Nc*Nc*Nc;
-    double volume = num_cells*pow(a0, 3.0);
-    double volume_inv = 1.0/volume
+    const double num_cells = pow(Nc, 3.0);
+    const double volume = num_cells*pow(a0, 3.0);
+    const double volume_inv = 1.0/volume;
     for(int i = 0; i < n_timesteps; i++){
         Pressure[i] = volume_inv * ( (2.0/3.0)*T[i] - virial[i]);
 //        Pressure[i] /= 624e-7; //Conversion to bars
