@@ -63,6 +63,8 @@ int main(int argc, char *argv[])
     double *virial = calloc(n_timesteps+1, sizeof(double));
     double *Temp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
+    double *Temp_exp = calloc(n_timesteps+1, sizeof(double));
+    double *Pressure_exp = calloc(n_timesteps+1, sizeof(double));
     
     /* Initial conditions */
     /* Displacements in Ångstroms */
@@ -101,7 +103,7 @@ int main(int argc, char *argv[])
     const double volume_inv = 1.0/volume;
     for(int i = 0; i < n_timesteps; i++){
         Pressure[i] = volume_inv * ( (2.0/3.0)*T[i] - virial[i]);
-//        Pressure[i] /= 624e-7; //Conversion to bars
+        Pressure[i] /= 624e-7; //Conversion to bars
     }
     
     //Shift Potential and Total Energy so E[0] = 0
@@ -110,12 +112,18 @@ int main(int argc, char *argv[])
         V[i] -= E_shift;
         E[i] -= E_shift;
     }
+    
+    //Calculating time averages for Pressure and Temperature
+    calc_time_average(n_timesteps, Temp, Temp_exp);
+    calc_time_average(n_timesteps, Pressure, Pressure_exp);
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
     write_temperatures_file("./output/temperature.csv", time_array, n_timesteps, Temp);
     write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
-    printf("Last average values:\n");
-    printf("T: %f\n", Temp[n_timesteps-1]);
-    printf("P: %f\n", Pressure[n_timesteps-1]);
+    write_temperatures_file("./output/temperature_avg.csv", time_array, n_timesteps, Temp_exp);
+    write_temperatures_file("./output/pressure_avg.csv", time_array, n_timesteps, Pressure_exp);
+    printf("Final average values:\n");
+    printf("T: %f\n", Temp_exp[n_timesteps-1]);
+    printf("P: %f\n", Pressure_exp[n_timesteps-1]);
 }
