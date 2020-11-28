@@ -46,20 +46,10 @@ int main(int argc, char *argv[])
     printf("Time step size:        %f\n", dt);
     printf("Number of time steps:  %d\n", n_timesteps);
     printf("Scaling:               %d\n", enable_scaling);
-
-    unsigned int Nc = 4;
-    unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
+    
     double pos[N][3];
     double v_0[N][3];
     double m[N];
-    double a0 = 4.030283615073347; //Units?
-
-    printf("Initializing FCC lattice coordinates\n");
-    init_fcc(pos, Nc, a0);
-    deviate_fcc(pos, N, a0);
-
-    double L = N*a0;
-//    double energy;
     double time_array[n_timesteps];
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
@@ -67,9 +57,19 @@ int main(int argc, char *argv[])
     double *virial = calloc(n_timesteps+1, sizeof(double));
     double *Temp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
-
+        
+    //Lattice parameters
+    unsigned int Nc = 4;
+    unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
+    double a0 = 4.030283615073347; //Units?
+    double L = N*a0;
+    
     /* Initial conditions */
     /* Displacements in Ångstroms */
+    printf("Initializing FCC lattice coordinates\n");
+    init_fcc(pos, Nc, a0);
+    deviate_fcc(pos, N, a0);
+    
     arange(time_array, 0, n_timesteps, dt);
 
     T[0] = 0;
