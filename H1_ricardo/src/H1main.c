@@ -104,7 +104,13 @@ int main(int argc, char *argv[])
         Pressure[i] = volume_inv * ( (2.0/3.0)*T[i] - virial[i]);
 //        Pressure[i] /= 624e-7; //Conversion to bars
     }
-
+    
+    //Shift Potential and Total Energy so E[0] = 0
+    const double E_shift = E[0];
+    for(int i = 0; i < n_timesteps; i++){
+        V[i] -= E_shift;
+        E[i] -= E_shift;
+    }
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
