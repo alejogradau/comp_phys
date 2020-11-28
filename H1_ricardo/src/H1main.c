@@ -86,8 +86,7 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E,
-      virial, dt, enable_scaling);
+    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, virial, dt, enable_scaling);
 
     printf("Calculating Temperature at every time step after verlet and scaling\n");
     const double kb = 8.617333262145e-5;
@@ -115,8 +114,8 @@ int main(int argc, char *argv[])
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
     write_temperatures_file("./output/temperature.csv", time_array, n_timesteps, Temp);
-//    write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
+    write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
     printf("Last average values:\n");
     printf("T: %f\n", Temp[n_timesteps-1]);
-//    printf("P: %f\n", Pressure[n_timesteps-1]);
+    printf("P: %f\n", Pressure[n_timesteps-1]);
 }
