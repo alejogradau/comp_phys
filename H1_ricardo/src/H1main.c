@@ -51,8 +51,7 @@ int main(int argc, char *argv[])
     //Lattice parameters
     const unsigned int Nc = 4;
     const unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
-    const double a0 = 4.030283615073347; //Units?
-    const double L = N*a0;
+    const double a0 = 4.030283615073347; //Å
     
     double pos[N][3];
     double v_0[N][3];
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
     arange(time_array, 0, n_timesteps, dt);
 
     T[0] = 0;
-    V[0] = get_energy_AL(pos, L, N);
+    V[0] = get_energy_AL(pos, a0*Nc, N);
     E[0] = T[0] + V[0];
 
     for(int i = 0; i < N; i++){
@@ -88,7 +87,7 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, dt, enable_scaling, 773.15, 200, Temp, Pressure);
+    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, 773.15, 500, Temp, Pressure);
     
     //Shift Potential and Total Energy so E[0] = 0
     const double E_shift = E[0];

@@ -173,18 +173,18 @@ void lattice_velocity_verlet(int n_timesteps, double cell_length, int n_particle
  * @kappa - Spring constant
  */
 
-void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
+void lattice_velocity_verlet_scaled(int n_timesteps, double a0, double Nc, 
   int n_particles, double m[n_particles], double v[n_particles][3],
   double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
   double E[n_timesteps], double dt, unsigned int enable_scaling, double temp_eq, double pressure_eq, double Temp[n_timesteps], double Pressure[n_timesteps])
 {
     double a[n_particles][3];
     double alpha_t, alpha_p, volume, virial;
-    double scaled_cell_length = cell_length;
+    double L = a0*Nc;
     double kappa = 1.385e-6; //at 300K, http://www.knowledgedoor.com/2/elements_handbook/aluminum.html, converted to bars
     
     //Fills array with forces every particle experiences
-    get_forces_AL(a, q, scaled_cell_length, n_particles);
+    get_forces_AL(a, q, L, n_particles);
 
     //Divides forces by each particle's mass to obtain their respective accelerations
     for(int i = 0; i < n_particles; i++){
@@ -210,7 +210,7 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
         }
 
         /* a(t+dt) */
-        get_forces_AL(a, q, scaled_cell_length, n_particles);
+        get_forces_AL(a, q, L, n_particles);
 
         for(int i = 0; i < n_particles; i++){
             a[i][0] /= m[i];
@@ -227,10 +227,10 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
             T[i] += 0.5*(pow(v[j][0], 2) + pow(v[j][1], 2) + pow(v[j][2], 2))*m[j];
         }
 
-        V[i] = get_energy_AL(q, scaled_cell_length, n_particles);
+        V[i] = get_energy_AL(q, L, n_particles);
         E[i] = T[i] + V[i];
-        virial = get_virial_AL(q, scaled_cell_length, n_particles);
-        volume = calc_volume(4, scaled_cell_length);
+        virial = get_virial_AL(q, L, n_particles);
+        volume = calc_volume(4, a0);
         Temp[i] = calc_temp(T[i], n_particles);
         Pressure[i] = calc_pressure(volume, T[i], virial);
         
@@ -242,12 +242,13 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
                 v[j][0] *= alpha_t;
                 v[j][1] *= alpha_t;
                 v[j][2] *= alpha_t;
-    
+
                 q[j][0] *= alpha_p;
                 q[j][1] *= alpha_p;
                 q[j][2] *= alpha_p;
 
-                scaled_cell_length *= alpha_p;
+                a0 *= alpha_p;
+                L *= alpha_p;
             }
         }
     }

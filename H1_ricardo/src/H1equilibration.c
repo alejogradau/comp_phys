@@ -14,9 +14,8 @@ double calc_temp(double K, double N){
 }
 
 double calc_pressure(double volume, double T, double virial){
-    double pressure = (1.0/volume) * (2.0/3.0) * (T-virial);
-    return pressure/624e-7; //Conversion to bars
-    
+    double pressure = (1.0/volume) * ((2.0/3.0)*T + virial);
+    return pressure/(624e-7); //Conversion to bars
 }
 
 double calc_alpha_t(double T_t, double T_eq, double tau_t, double dt){
