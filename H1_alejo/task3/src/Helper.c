@@ -35,3 +35,23 @@ void write_energies_file(char *fname, double *time_array, int n_timesteps, doubl
     }
     fclose(fp);
 }
+
+void write_temperatures_file(char *fname, double *time_array, int n_timesteps, double Temp[n_timesteps])
+{
+    FILE *fp = fopen(fname, "w");
+    fprintf(fp, "time, Temp\n");
+    
+    for(int i = 0; i < n_timesteps; ++i){
+        fprintf(fp, "%f, %f\n", time_array[i], Temp[i]);
+    }
+    fclose(fp);
+}
+
+void calc_time_average(int n_timesteps, double O[], double O_exp[]){
+    double sum_of_O = 0;
+    
+    for(int i = 0; i < n_timesteps; i++){
+            sum_of_O += O[i];
+            O_exp[i] = sum_of_O/(i+1);
+    }
+}

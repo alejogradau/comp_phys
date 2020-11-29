@@ -11,9 +11,10 @@
 #include "H1lattice.h"
 #include "H1potential.h"
 #include "verlet.h"
+#include "H1equilibration.h"
 
 /* Main program */
-int main()
+int main(int argc, char *argv[])
 {
     /*
      Descriptions of the different functions in the files H1lattice.c and
@@ -28,83 +29,95 @@ int main()
      correspond to the x,y and z coordinate respectively.
     */
 
-    unsigned int Nc = 4;
-    unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
+    //Check the correct number of timesteps were given
+    if(argc < 4){
+        printf("Incorrect number of parameters, exiting\n");
+        return(1);
+    }
+
+    //Read values of parameters and calculate number of needed timesteps
+    unsigned int total_time = strtoul(argv[1], NULL, 10);
+    double dt = atof(argv[2]);             //in picoseconds, e.g. 0.001 = 1 femtosecond
+    unsigned int enable_scaling = strtoul(argv[3], NULL, 10);
+    unsigned int n_timesteps = total_time/dt;
+    double t_eq = 0;
+    double p_eq = 0;
+    
+    if(enable_scaling){
+        if(argc < 6){
+            printf("Incorrect number of parameters, exiting\n");
+            return(1);
+        }
+       t_eq = atof(argv[4]);
+       p_eq = atof(argv[5]);
+    }
+
+    //Clear screen before printing results
+    system("clear");
+    printf("Total Time:            %d ps\n", total_time);
+    printf("Time step size:        %f\n", dt);
+    printf("Number of time steps:  %d\n", n_timesteps);
+    printf("Scaling:               %d\n", enable_scaling);
+    
+    //Lattice parameters
+    const unsigned int Nc = 4;
+    const unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
+    const double a0 = 4.030283615073347; //Å
+    
     double pos[N][3];
     double v_0[N][3];
     double m[N];
-    double a0 = 4.030283615073347; //Units?
-
+    double time_array[n_timesteps];
+    double *T = calloc(n_timesteps+1, sizeof(double));
+    double *V = calloc(n_timesteps+1, sizeof(double));
+    double *E = calloc(n_timesteps+1, sizeof(double));
+    double *Temp = calloc(n_timesteps+1, sizeof(double));
+    double *Pressure = calloc(n_timesteps+1, sizeof(double));
+    double *Temp_exp = calloc(n_timesteps+1, sizeof(double));
+    double *Pressure_exp = calloc(n_timesteps+1, sizeof(double));
+    
+    /* Initial conditions */
+    /* Displacements in Ångstroms */
     printf("Initializing FCC lattice coordinates\n");
     init_fcc(pos, Nc, a0);
     deviate_fcc(pos, N, a0);
-
-    /*
-     Function that calculates the potential energy in units of [eV]. pos should be
-     a matrix containing the positions of all the atoms, L is the length of the
-     supercell and N is the number of atoms.
-    */
-
-    double L = N*a0;
-//    double energy;
-    int verlet_timesteps = 1; double dt = 0.001;
-    double time_array[n_timesteps];
-    double *T = calloc(verlet_timesteps+1, sizeof(double));
-    double *V = calloc(verlet_timesteps+1, sizeof(double));
-    double *E = calloc(verlet_timesteps+1, sizeof(double));
-
-    /* Initial conditions */
-    /* Displacements in Ångstroms */
+    
     arange(time_array, 0, n_timesteps, dt);
 
-//    T[0] = get_virial_AL(pos, L, N);
     T[0] = 0;
-    V[0] = get_energy_AL(pos, L, N);
+    V[0] = get_energy_AL(pos, a0*Nc, N);
     E[0] = T[0] + V[0];
 
     for(int i = 0; i < N; i++){
-        m[i] = 27/12*1.244e-3;
+        m[i] = 27/12*1.244e-3; //Cross multiplication from mass of Carbon
         v_0[i][0] = 0.0;
         v_0[i][1] = 0.0;
         v_0[i][2] = 0.0;
     }
 
-    printf("Simulating Time Evolution for the Kinetic, Potential, and Total Energy\n");
-    lattice_velocity_verlet(n_timesteps, L, N, m, v_0, pos, T, V, E, dt);
+    printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
+    printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
+    printf("of velocities and positions are done at each time step.\n");
+    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, t_eq, p_eq, Temp, Pressure);
+    
+    //Shift Potential and Total Energy so E[0] = 0
+    const double E_shift = E[0];
+    for(int i = 0; i < n_timesteps; i++){
+        V[i] -= E_shift;
+        E[i] -= E_shift;
+    }
+    
+    //Calculating time averages for Pressure and Temperature
+    calc_time_average(n_timesteps, Temp, Temp_exp);
+    calc_time_average(n_timesteps, Pressure, Pressure_exp);
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
-
-//    printf("Calculating potential energy in eV\n");
-//    energy = get_energy_AL(pos, L, N);
-
-    /*
-     Function that calculates the virial in units of [eV]. pos should be a matrix
-     containing the positions of all the atoms, L is the length of the supercell
-     and N is the number of atoms.
-    */
-
-//    double virial;
-    //    printf("Calculating virial in eV\n");
-    //    virial = get_virial_AL(pos, L, N)/256;
-
-    double kb = 8.617333262145e-5;
-    double temperature = (T[n_timesteps-1]/256) * 2/(3*kb);
-    printf("T: %f\n", temperature);
-
-    /*
-     Function that calculates the forces on all atoms in units of [eV/Å]. the
-     forces are stored in f which should be a matrix of size N x 3, where N is the
-     number of atoms and column 1,2 and 3 correspond to the x,y and z component of
-     the force resepctively . pos should be a matrix containing the positions of
-     all the atoms, L is the length of the supercell and N is the number of atoms.
-    */
-
-//    double f[N][3];
-//    printf("Calculating forces\n");
-//    get_forces_AL(f,pos, L, N);
-
-//    printf("A_0:    %f\n", a0);
-//    printf("Energy: %f\n", energy);
-//    printf("Virial: %f\n", virial);
+    write_temperatures_file("./output/temperature.csv", time_array, n_timesteps, Temp);
+    write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
+    write_temperatures_file("./output/temperature_avg.csv", time_array, n_timesteps, Temp_exp);
+    write_temperatures_file("./output/pressure_avg.csv", time_array, n_timesteps, Pressure_exp);
+    printf("Final average values:\n");
+    printf("T: %f\n", Temp_exp[n_timesteps-1]);
+    printf("P: %f\n", Pressure_exp[n_timesteps-1]);
 }
