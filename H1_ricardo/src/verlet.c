@@ -179,10 +179,12 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
   double E[n_timesteps], double virial[n_timesteps], double dt, unsigned int enable_scaling, double temp_eq, double pressure_eq)
 {
     double a[n_particles][3];
-    double temp_t;
+    double temp_t, pressure_t;
+    double scaled_cell_length = cell_length;
+    double kappa = 1.385e-6; //at 300K, http://www.knowledgedoor.com/2/elements_handbook/aluminum.html, converted to bars
     
     //Fills array with forces every particle experiences
-    get_forces_AL(a, q, cell_length, n_particles);
+    get_forces_AL(a, q, scaled_cell_length, n_particles);
 
     //Divides forces by each particle's mass to obtain their respective accelerations
     for(int i = 0; i < n_particles; i++){
@@ -207,7 +209,7 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
         }
 
         /* a(t+dt) */
-        get_forces_AL(a, q, cell_length, n_particles);
+        get_forces_AL(a, q, scaled_cell_length, n_particles);
 
         for(int i = 0; i < n_particles; i++){
             a[i][0] /= m[i];
@@ -224,24 +226,25 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
             T[i] += 0.5*(pow(v[j][0], 2) + pow(v[j][1], 2) + pow(v[j][2], 2))*m[j];
         }
 
-        V[i] = get_energy_AL(q, cell_length, n_particles);
+        V[i] = get_energy_AL(q, scaled_cell_length, n_particles);
         E[i] = T[i] + V[i];
-        virial[i] = get_virial_AL(q, cell_length, n_particles);
+        virial[i] = get_virial_AL(q, scaled_cell_length, n_particles);
         if(enable_scaling){
             temp_t = calc_temp(T[i], n_particles);
+            pressure_t = calc_pressure(T[i], virial[i], scaled_cell_length, 4);
             double alpha_t = sqrt(calc_alpha_t(temp_t, temp_eq,  dt*100, dt));
-    //        double alpha_p = cbrt(calc_alpha_p(624e-7, dt*100, dt, kappa, T[i], virial[i], cell_length, 4));
+            double alpha_p = cbrt(calc_alpha_p(pressure_t, 624e-7, dt*100, dt, kappa));
 
             for (int j = 0; j < n_particles; j++) {
                 v[j][0] *= alpha_t;
                 v[j][1] *= alpha_t;
                 v[j][2] *= alpha_t;
-    //
-    //            q[j][0] *= alpha_p;
-    //            q[j][1] *= alpha_p;
-    //            q[j][2] *= alpha_p;
-
-    //            cell_length *= cbrt(scaling_p);
+    
+//                q[j][0] *= alpha_p;
+//                q[j][1] *= alpha_p;
+//                q[j][2] *= alpha_p;
+//
+//                scaled_cell_length *= alpha_p;
             }
         }
     }

@@ -15,6 +15,6 @@ extern double calc_pressure(double Nc, double a0, double T, double virial);
 
 extern double calc_alpha_t(double T_t, double T_eq, double tau_t, double dt);
 
-extern double calc_alpha_p(double P_eq, double tau_p, double dt, double kappa, double T, double virial, double a0, double Nc);
+extern double calc_alpha_p(double P_t, double P_eq, double tau_p, double dt, double kappa);
 
 #endif
