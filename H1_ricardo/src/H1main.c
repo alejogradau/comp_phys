@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     */
 
     //Check the correct number of timesteps were given
-    if(argc != 4){
+    if(argc < 4){
         printf("Incorrect number of parameters, exiting\n");
         return(1);
     }
@@ -40,6 +40,17 @@ int main(int argc, char *argv[])
     double dt = atof(argv[2]);             //in picoseconds, e.g. 0.001 = 1 femtosecond
     unsigned int enable_scaling = strtoul(argv[3], NULL, 10);
     unsigned int n_timesteps = total_time/dt;
+    double t_eq = 0;
+    double p_eq = 0;
+    
+    if(enable_scaling){
+        if(argc < 6){
+            printf("Incorrect number of parameters, exiting\n");
+            return(1);
+        }
+       t_eq = atof(argv[4]);
+       p_eq = atof(argv[5]);
+    }
 
     //Clear screen before printing results
     system("clear");
@@ -87,7 +98,7 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, 773.15, 500, Temp, Pressure);
+    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, t_eq, p_eq, Temp, Pressure);
     
     //Shift Potential and Total Energy so E[0] = 0
     const double E_shift = E[0];
