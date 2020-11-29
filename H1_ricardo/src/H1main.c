@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     }
 
     //Read values of parameters and calculate number of needed timesteps
-    unsigned int total_time = strtoul(argv[1], NULL, 10);
+    double total_time = atof(argv[1]);
     double dt = atof(argv[2]);             //in picoseconds, e.g. 0.001 = 1 femtosecond
     unsigned int enable_scaling = strtoul(argv[3], NULL, 10);
     unsigned int n_timesteps = total_time/dt;
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
     //Clear screen before printing results
     system("clear");
-    printf("Total Time:            %d ps\n", total_time);
+    printf("Total Time:            %f ps\n", total_time);
     printf("Time step size:        %f\n", dt);
     printf("Number of time steps:  %d\n", n_timesteps);
     printf("Scaling:               %d\n", enable_scaling);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     double pos[N][3];
     double v_0[N][3];
     double m[N];
-    double time_array[n_timesteps];
+    double time_array[n_timesteps+1];
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
     double *E = calloc(n_timesteps+1, sizeof(double));
@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
     double *Temp_exp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure_exp = calloc(n_timesteps+1, sizeof(double));
+    double *a0_ev = calloc(n_timesteps+1, sizeof(double));
     
     /* Initial conditions */
     /* Displacements in Ångstroms */
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
     init_fcc(pos, Nc, a0);
     deviate_fcc(pos, N, a0);
     
-    arange(time_array, 0, n_timesteps, dt);
+    arange(time_array, 0, n_timesteps+1, dt);
 
     T[0] = 0;
     V[0] = get_energy_AL(pos, a0*Nc, N);
@@ -98,13 +99,15 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, t_eq, p_eq, Temp, Pressure);
+    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, t_eq, p_eq, Temp, Pressure, a0_ev, time_array);
     
     //Shift Potential and Total Energy so E[0] = 0
-    const double E_shift = E[0];
-    for(int i = 0; i < n_timesteps; i++){
-        V[i] -= E_shift;
-        E[i] -= E_shift;
+    const double E_shift = E[n_timesteps];
+    if(!enable_scaling){
+        for(int i = 0; i < n_timesteps; i++){
+            V[i] -= E_shift;
+            E[i] -= E_shift;
+        }
     }
     
     //Calculating time averages for Pressure and Temperature
@@ -117,7 +120,10 @@ int main(int argc, char *argv[])
     write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
     write_temperatures_file("./output/temperature_avg.csv", time_array, n_timesteps, Temp_exp);
     write_temperatures_file("./output/pressure_avg.csv", time_array, n_timesteps, Pressure_exp);
+    write_temperatures_file("./output/a0.csv", time_array, n_timesteps, a0_ev);
     printf("Final average values:\n");
-    printf("T: %f\n", Temp_exp[n_timesteps-1]);
-    printf("P: %f\n", Pressure_exp[n_timesteps-1]);
+    printf("T: %f\n", Temp_exp[n_timesteps]);
+    printf("P: %f\n", Pressure_exp[n_timesteps]);
+    printf("Final instant values:\n");
+    printf("A0: %f\n", a0_ev[n_timesteps]);    
 }
