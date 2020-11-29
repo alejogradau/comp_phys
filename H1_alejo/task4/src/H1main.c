@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
     double v_0[N][3];
     double m[N];
     double time_array[n_timesteps];
+    double Temp_equilibrium = 0;
+    double Pressure_equilibrium = 0;
+
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
     double *E = calloc(n_timesteps+1, sizeof(double));
@@ -104,13 +107,17 @@ int main(int argc, char *argv[])
     calc_time_average(n_timesteps, Temp, Temp_exp);
     calc_time_average(n_timesteps, Pressure, Pressure_exp);
 
+    // Calculating averages after equilibration for Pressure and Temperature
+    Temp_equilibrium = calc_eq_average(n_timesteps, Temp, n_timesteps/2);
+    Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure, 200);
+
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
     write_temperatures_file("./output/temperature.csv", time_array, n_timesteps, Temp);
     write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
     write_temperatures_file("./output/temperature_avg.csv", time_array, n_timesteps, Temp_exp);
     write_temperatures_file("./output/pressure_avg.csv", time_array, n_timesteps, Pressure_exp);
-    printf("Final average values:\n");
-    printf("T: %f\n", Temp_exp[n_timesteps-1]);
-    printf("P: %f\n", Pressure_exp[n_timesteps-1]);
+    printf("Final average values after equilibration:\n");
+    printf("T: %f\n", Temp_equilibrium);
+    printf("P: %f\n", Pressure_equilibrium);
 }

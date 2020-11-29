@@ -15,4 +15,6 @@ extern void write_temperatures_file(char *fname, double *time_array, int n_times
 
 extern void calc_time_average(int n_timesteps, double O[], double O_exp[]);
 
+extern double calc_eq_average(int n_timesteps, double A[], int i_0);
+
 #endif
