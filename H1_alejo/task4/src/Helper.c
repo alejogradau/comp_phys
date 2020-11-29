@@ -29,7 +29,7 @@ void write_energies_file(char *fname, double *time_array, int n_timesteps, doubl
 {
     FILE *fp = fopen(fname, "w");
     fprintf(fp, "time, T, V, E\n");
-    
+
     for(int i = 0; i < n_timesteps; ++i){
         fprintf(fp, "%f, %f, %f, %f\n", time_array[i], T[i], V[i], E[i]);
     }
@@ -40,7 +40,7 @@ void write_temperatures_file(char *fname, double *time_array, int n_timesteps, d
 {
     FILE *fp = fopen(fname, "w");
     fprintf(fp, "time, Temp\n");
-    
+
     for(int i = 0; i < n_timesteps; ++i){
         fprintf(fp, "%f, %f\n", time_array[i], Temp[i]);
     }
@@ -49,9 +49,22 @@ void write_temperatures_file(char *fname, double *time_array, int n_timesteps, d
 
 void calc_time_average(int n_timesteps, double O[], double O_exp[]){
     double sum_of_O = 0;
-    
+
     for(int i = 0; i < n_timesteps; i++){
             sum_of_O += O[i];
             O_exp[i] = sum_of_O/(i+1);
     }
+}
+
+/* Calculate the average value of the quantity A after equilibration */
+double calc_eq_average(int n_timesteps, double A[], int i_0){
+    double sum_of_A = 0;
+    double A_equilibration = 0;
+    //unsigned int tau = 100;
+    //unsigned int i_0 = 2*tau;  // Equilibration
+    for(int i = i_0; i < n_timesteps; i++){
+            sum_of_A += A[i];
+    }
+    A_equilibration = sum_of_A/(n_timesteps - i_0);
+    return A_equilibration;
 }

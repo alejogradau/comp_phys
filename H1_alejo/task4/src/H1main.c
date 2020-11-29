@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     */
 
     //Check the correct number of timesteps were given
-    if(argc < 4){
+    if(argc < 6){
         printf("Incorrect number of parameters, exiting\n");
         return(1);
     }
@@ -38,36 +38,32 @@ int main(int argc, char *argv[])
     //Read values of parameters and calculate number of needed timesteps
     unsigned int total_time = strtoul(argv[1], NULL, 10);
     double dt = atof(argv[2]);             //in picoseconds, e.g. 0.001 = 1 femtosecond
-    unsigned int enable_scaling = strtoul(argv[3], NULL, 10);
     unsigned int n_timesteps = total_time/dt;
-    double t_eq = 0;
-    double p_eq = 0;
-    
-    if(enable_scaling){
-        if(argc < 6){
-            printf("Incorrect number of parameters, exiting\n");
-            return(1);
-        }
-       t_eq = atof(argv[4]);
-       p_eq = atof(argv[5]);
-    }
+    double inter_temp = atof(argv[3]);
+    double t_eq = atof(argv[4]);
+    double p_eq = atof(argv[5]);
 
     //Clear screen before printing results
-    system("clear");
+    //system("clear");
     printf("Total Time:            %d ps\n", total_time);
     printf("Time step size:        %f\n", dt);
     printf("Number of time steps:  %d\n", n_timesteps);
-    printf("Scaling:               %d\n", enable_scaling);
-    
+    printf("Desired intermediate T:  %f\n", inter_temp);
+    printf("Desired equilibration T:  %f\n", t_eq);
+    printf("Desired equilibration P:  %f\n", p_eq);
+
     //Lattice parameters
     const unsigned int Nc = 4;
     const unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
     const double a0 = 4.030283615073347; //Å
-    
+
     double pos[N][3];
     double v_0[N][3];
     double m[N];
     double time_array[n_timesteps];
+    double Temp_equilibrium = 0;
+    double Pressure_equilibrium = 0;
+
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
     double *E = calloc(n_timesteps+1, sizeof(double));
@@ -75,13 +71,13 @@ int main(int argc, char *argv[])
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
     double *Temp_exp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure_exp = calloc(n_timesteps+1, sizeof(double));
-    
+
     /* Initial conditions */
     /* Displacements in Ångstroms */
     printf("Initializing FCC lattice coordinates\n");
     init_fcc(pos, Nc, a0);
     deviate_fcc(pos, N, a0);
-    
+
     arange(time_array, 0, n_timesteps, dt);
 
     T[0] = 0;
@@ -98,18 +94,22 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, a0, Nc, N, m, v_0, pos, T, V, E, dt, enable_scaling, t_eq, p_eq, Temp, Pressure);
-    
-    //Shift Potential and Total Energy so E[0] = 0
+    verlet_inter_melting(n_timesteps, a0, Nc, N, m, v_0, pos,
+      T, V, E, dt, inter_temp, t_eq, p_eq, Temp, Pressure);
+
     const double E_shift = E[0];
     for(int i = 0; i < n_timesteps; i++){
         V[i] -= E_shift;
         E[i] -= E_shift;
     }
-    
+
     //Calculating time averages for Pressure and Temperature
     calc_time_average(n_timesteps, Temp, Temp_exp);
     calc_time_average(n_timesteps, Pressure, Pressure_exp);
+
+    // Calculating averages after equilibration for Pressure and Temperature
+    Temp_equilibrium = calc_eq_average(n_timesteps, Temp, n_timesteps/2);
+    Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure, 200);
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
     write_temperatures_file("./output/temperature_avg.csv", time_array, n_timesteps, Temp_exp);
     write_temperatures_file("./output/pressure_avg.csv", time_array, n_timesteps, Pressure_exp);
-    printf("Final average values:\n");
-    printf("T: %f\n", Temp_exp[n_timesteps-1]);
-    printf("P: %f\n", Pressure_exp[n_timesteps-1]);
+    printf("Final average values after equilibration:\n");
+    printf("T: %f\n", Temp_equilibrium);
+    printf("P: %f\n", Pressure_equilibrium);
 }
