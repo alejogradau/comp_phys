@@ -230,7 +230,7 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
         if(enable_scaling){
             temp_t = calc_temp(T[i], n_particles);
             double alpha_t = sqrt(calc_alpha_t(temp_t, temp_eq,  dt*100, dt));
-    //        double alpha_p = cbrt(calc_alpha_p(624e-7, i*dt, dt*100, dt, kappa, T[i], V[i], 256, cell_length, 4*4*4));
+    //        double alpha_p = cbrt(calc_alpha_p(624e-7, dt*100, dt, kappa, T[i], virial[i], cell_length, 4));
 
             for (int j = 0; j < n_particles; j++) {
                 v[j][0] *= alpha_t;

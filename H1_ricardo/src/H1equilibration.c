@@ -22,10 +22,9 @@ double calc_alpha_t(double T_t, double T_eq, double tau_t, double dt){
     return 1 + ((2*dt)/tau_t) * (T_eq - T_t)/T_t;
 }
 
-double calc_alpha_p(double P_eq, double t, double tau_p, double dt, double kappa, double K, double V, double N, double cell_length, double num_cells){
+double calc_alpha_p(double P_eq, double tau_p, double dt, double kappa, double T, double virial, double a0, double Nc){
 
-    double volume = num_cells*pow(cell_length, 3.0);
-    double P_t = 1.0/(3.0*volume) * 2.0*(K+V);
+    double P_t = calc_pressure(Nc, a0, T, virial);
     double alpha_p = 1 -kappa*(dt/tau_p)*(P_eq - P_t);
 
     return alpha_p;
