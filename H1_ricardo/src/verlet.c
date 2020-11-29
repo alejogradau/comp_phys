@@ -176,10 +176,10 @@ void lattice_velocity_verlet(int n_timesteps, double cell_length, int n_particle
 void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
   int n_particles, double m[n_particles], double v[n_particles][3],
   double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
-  double E[n_timesteps], double virial[n_timesteps], double dt, unsigned int enable_scaling, double temp_eq, double pressure_eq)
+  double E[n_timesteps], double dt, unsigned int enable_scaling, double temp_eq, double pressure_eq, double Temp[n_timesteps], double Pressure[n_timesteps])
 {
     double a[n_particles][3];
-    double temp_t, pressure_t;
+    double alpha_t, alpha_p, volume, virial;
     double scaled_cell_length = cell_length;
     double kappa = 1.385e-6; //at 300K, http://www.knowledgedoor.com/2/elements_handbook/aluminum.html, converted to bars
     
@@ -193,6 +193,7 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
         a[i][2] /= m[i];
     }
 
+    //One verlet step
     for (int i = 1; i < n_timesteps + 1; i++) {
         /* v(t+dt/2) */
         for (int j = 0; j < n_particles; j++) {
@@ -228,23 +229,25 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double cell_length,
 
         V[i] = get_energy_AL(q, scaled_cell_length, n_particles);
         E[i] = T[i] + V[i];
-        virial[i] = get_virial_AL(q, scaled_cell_length, n_particles);
+        virial = get_virial_AL(q, scaled_cell_length, n_particles);
+        volume = calc_volume(4, scaled_cell_length);
+        Temp[i] = calc_temp(T[i], n_particles);
+        Pressure[i] = calc_pressure(volume, T[i], virial);
+        
         if(enable_scaling){
-            temp_t = calc_temp(T[i], n_particles);
-            pressure_t = calc_pressure(T[i], virial[i], scaled_cell_length, 4);
-            double alpha_t = sqrt(calc_alpha_t(temp_t, temp_eq,  dt*100, dt));
-            double alpha_p = cbrt(calc_alpha_p(pressure_t, 624e-7, dt*100, dt, kappa));
+            alpha_t = sqrt(calc_alpha_t(Temp[i], temp_eq,  dt*100, dt));
+            alpha_p = cbrt(calc_alpha_p(Pressure[i], pressure_eq, dt*100, dt, kappa));
 
             for (int j = 0; j < n_particles; j++) {
                 v[j][0] *= alpha_t;
                 v[j][1] *= alpha_t;
                 v[j][2] *= alpha_t;
     
-//                q[j][0] *= alpha_p;
-//                q[j][1] *= alpha_p;
-//                q[j][2] *= alpha_p;
-//
-//                scaled_cell_length *= alpha_p;
+                q[j][0] *= alpha_p;
+                q[j][1] *= alpha_p;
+                q[j][2] *= alpha_p;
+
+                scaled_cell_length *= alpha_p;
             }
         }
     }

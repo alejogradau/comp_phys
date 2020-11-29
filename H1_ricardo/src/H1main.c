@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
     double *E = calloc(n_timesteps+1, sizeof(double));
-    double *virial = calloc(n_timesteps+1, sizeof(double));
     double *Temp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
     double *Temp_exp = calloc(n_timesteps+1, sizeof(double));
@@ -89,17 +88,7 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, virial, dt, enable_scaling, 773.15, 1);
-
-    printf("Calculating Temperature at every time step after verlet and scaling\n");
-    for(int i = 0; i < n_timesteps; i++){
-        Temp[i] = calc_temp(T[i], N);
-    }
-
-    printf("Calculating Pressure at every time step after verlet and scaling\n");
-    for(int i = 0; i < n_timesteps; i++){
-        Pressure[i] = calc_pressure(Nc, a0, T[i], virial[i]);
-    }
+    lattice_velocity_verlet_scaled(n_timesteps, L, N, m, v_0, pos, T, V, E, dt, enable_scaling, 773.15, 200, Temp, Pressure);
     
     //Shift Potential and Total Energy so E[0] = 0
     const double E_shift = E[0];
