@@ -251,22 +251,19 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double a0, double Nc,
         a0_ev[i] = a0;
         
         if(enable_scaling){
-            alpha_t = sqrt(calc_alpha_t(Temp[i], temp_eq,  dt*100, dt));
-            alpha_p = cbrt(calc_alpha_p(Pressure[i], pressure_eq, dt*100, dt, kappa));
-
-            for (int j = 0; j < n_particles; j++) {
-                v[j][0] *= alpha_t;
-                v[j][1] *= alpha_t;
-                v[j][2] *= alpha_t;
-
-                q[j][0] *= alpha_p;
-                q[j][1] *= alpha_p;
-                q[j][2] *= alpha_p;
-
+        alpha_t = sqrt(calc_alpha_t(Temp[i], temp_eq,  dt*100, dt));
+        alpha_p = cbrt(calc_alpha_p(Pressure[i], pressure_eq, dt*100, dt, kappa));
+            
+        for (int j = 0; j < n_particles; j++) {
+            for (int k = 0; k < 3; k++) {
+                v[j][k] *= alpha_t;
+                q[j][k] *= alpha_p;
+                
                 a0 *= alpha_p;
                 L = a0*Nc;
             }
         }
+    }
         fprintf(fp, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", time_array[i], q[0][0], q[0][1], q[0][2], q[127][0], q[127][1], q[127][2], q[255][0], q[255][1], q[255][2]);
     }
     fclose(fp);
