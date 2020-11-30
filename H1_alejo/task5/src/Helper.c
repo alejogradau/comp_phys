@@ -3,6 +3,7 @@
  *****************************************************************************/
 
 #include <stdio.h>
+#include <math.h> // pow
 
  /*
   * constructs a0 array
@@ -91,5 +92,6 @@ double calc_cv_NVE(unsigned int n_particles, double temp_eq, double variance)
   const double kb = 8.617333262145e-5;
   double factor1 = (3.0*n_particles*kb)/2.0;
   double factor2 = 2.0 / ( 3.0*n_particles*pow(kb,2)*pow(temp_eq,2) );
-  double cv = factor1 / (1 - (factor2*variance))
+  double cv = factor1 / (1 - (factor2*variance));
+  return cv;
 }

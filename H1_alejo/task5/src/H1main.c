@@ -98,10 +98,16 @@ int main(int argc, char *argv[])
     //calc_time_average(n_timesteps, Temp, Temp_exp);
     //calc_time_average(n_timesteps, Pressure, Pressure_exp);
 
-    // Calculating averages after equilibration for Pressure and Temperature
+    // Calculating averages after equilibration
     double Temp_equilibrium = calc_eq_average(n_timesteps, Temp, n_timesteps/2);
     double Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure, 200);
     double a0_equilibrium = calc_eq_average(n_timesteps, a0_ev, n_timesteps/2);
+    double K_equilibrium = calc_eq_average(n_timesteps, T, n_timesteps/2);
+    double V_equilibrium = calc_eq_average(n_timesteps, V, n_timesteps/2);
+
+    // Calculating variances after Equilibration
+    double K_var = calc_eq_var(n_timesteps, T, K_equilibrium, n_timesteps/2);
+    double V_var = calc_eq_var(n_timesteps, V, V_equilibrium, n_timesteps/2);
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
@@ -113,4 +119,10 @@ int main(int argc, char *argv[])
     printf("T: %f\n", Temp_equilibrium);
     printf("P: %f\n", Pressure_equilibrium);
     printf("a0: %f\n", a0_equilibrium);
+    printf("Kinetic: %f\n", K_equilibrium);
+    printf("Potential: %f\n", V_equilibrium);
+
+    printf("Variance from the mean values after equilibration:\n");
+    printf("var Kinetic: %f\n", K_var);
+    printf("var Potential: %f\n", V_var);
 }
