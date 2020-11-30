@@ -74,7 +74,13 @@ double calc_eq_average(int n_timesteps, double A[], unsigned int i_0){
  */
 double calc_eq_var(int n_timesteps, double A[], double A_equilibration,
   unsigned int i_0){
-
+    double sum = 0;
+    double variance = 0;
+    for(int i = i_0; i < n_timesteps; i++){
+            sum += pow((A[i] - A_equilibration),2);
+    }
+    variance = sum/(n_timesteps - i_0);
+    return variance;
 }
 
 /* Calculate heat capacity for the microcanonical ensemble (constant NVE)
