@@ -20,7 +20,7 @@ lattice_param = True
 positions = True
 
 if energy:
-    array = np.genfromtxt('./output/energy.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/energy.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(array[:, 0], array[:, 1], label="Kinetic Energy")
@@ -31,10 +31,10 @@ if energy:
     ax.set_ylabel('Energy (eV)')
     plt.legend()
 
-    fig.savefig('./output/energy.pdf')
+    fig.savefig('./out/energy.pdf')
     
 if energy_scaled:
-    array = np.genfromtxt('./output/energy.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/energy.csv', delimiter=',', skip_header=1)
 
     fig = plt.figure()
     gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
@@ -55,10 +55,10 @@ if energy_scaled:
     ax0.set_ylabel('Energy (eV)')
     plt.subplots_adjust(hspace=.0)
 
-    fig.savefig('./output/energy_scaled.pdf')
+    fig.savefig('./out/energy_scaled.pdf')
 
 if temperature:
-    array = np.genfromtxt('./output/temperature.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/temperature.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(array[:, 0], array[:, 1], label="")
@@ -67,10 +67,10 @@ if temperature:
     ax.set_ylabel('Temperature (ºK)')
     plt.legend()
 
-    fig.savefig('./output/temperature.pdf')
+    fig.savefig('./out/temperature.pdf')
 
 if pressure:
-    array = np.genfromtxt('./output/pressure.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/pressure.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(array[:, 0], array[:, 1], label="")
@@ -79,10 +79,10 @@ if pressure:
     ax.set_ylabel('Pressure (bar)')
     plt.legend()
 
-    fig.savefig('./output/pressure.pdf')
+    fig.savefig('./out/pressure.pdf')
 
 if temperature_avg:
-    array = np.genfromtxt('./output/temperature_avg.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/temperature_avg.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(array[:, 0], array[:, 1], label="")
@@ -91,10 +91,10 @@ if temperature_avg:
     ax.set_ylabel('Temperature (ºK)')
     plt.legend()
 
-    fig.savefig('./output/temperature_avg.pdf')
+    fig.savefig('./out/temperature_avg.pdf')
 
 if pressure_avg:
-    array = np.genfromtxt('./output/pressure_avg.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/pressure_avg.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(array[:, 0], array[:, 1], label="")
@@ -103,10 +103,10 @@ if pressure_avg:
     ax.set_ylabel('Pressure (bar)')
     plt.legend()
 
-    fig.savefig('./output/pressure_avg.pdf')
+    fig.savefig('./out/pressure_avg.pdf')
 
 if lattice_param:
-    array = np.genfromtxt('./output/a0.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/a0.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(array[:, 0], array[:, 1], label="")
@@ -115,24 +115,24 @@ if lattice_param:
     ax.set_ylabel('Lattice Parameter (Å)')
     plt.legend()
 
-    fig.savefig('./output/a0.pdf')
+    fig.savefig('./out/a0.pdf')
 
 
 if positions:
-    array = np.genfromtxt('./output/positions.csv', delimiter=',', skip_header=1)
+    array = np.genfromtxt('./out/positions.csv', delimiter=',', skip_header=1)
 
     fig, ax = plt.subplots(figsize=(10,4))
-    ax.plot(array[:, 0], array[:, 1], label="x1")
-    ax.plot(array[:, 0], array[:, 2], label="y1")
-    ax.plot(array[:, 0], array[:, 3], label="z1")
-    ax.plot(array[:, 0], array[:, 4], label="x2")
-    ax.plot(array[:, 0], array[:, 5], label="y2")
-    ax.plot(array[:, 0], array[:, 6], label="z2")
-    ax.plot(array[:, 0], array[:, 7], label="x3")
-    ax.plot(array[:, 0], array[:, 8], label="y3")
-    ax.plot(array[:, 0], array[:, 9], label="z3")
+    ax.plot(array[:, 0], array[:, 1])
+    ax.plot(array[:, 0], array[:, 2])
+    ax.plot(array[:, 0], array[:, 3])
+    ax.plot(array[:, 0], array[:, 4])
+    ax.plot(array[:, 0], array[:, 5])
+    ax.plot(array[:, 0], array[:, 6])
+    ax.plot(array[:, 0], array[:, 7])
+    ax.plot(array[:, 0], array[:, 8])
+    ax.plot(array[:, 0], array[:, 9])
     ax.set_xlabel('Time (ps)')
-    ax.set_ylabel('Displacement (Å)')
+    ax.set_ylabel('Position (Å)')
     plt.legend()
 
-    fig.savefig('./output/positions.pdf')
+    fig.savefig('./out/positions.pdf')
