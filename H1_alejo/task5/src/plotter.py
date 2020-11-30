@@ -12,9 +12,10 @@ from matplotlib import gridspec
 # row in data.csv
 
 energy = False
-temperature = False
-pressure = False
-a0_ev = True
+energy_shifted = True
+temperature = True
+pressure = True
+a0_ev = False
 
 font = {'size'   : 16}
 mpl.rc('font', **font)
@@ -41,6 +42,21 @@ if energy:
     ax1.set_xlabel('Time (ps)')
     ax0.set_ylabel('Energy (eV)')
     plt.subplots_adjust(hspace=.05)
+
+    fig.savefig('./plots/energy.pdf')
+
+if energy_shifted:
+    array = np.genfromtxt('./output/energy.csv', delimiter=',', skip_header=1)
+
+    fig, ax = plt.subplots(figsize=(10,6))
+    ax.plot(array[:, 0], array[:, 1], label="Kinetic Energy")
+    ax.plot(array[:, 0], array[:, 2], label="Potential Energy")
+    ax.plot(array[:, 0], array[:, 3], label="Total Energy")
+#    ax.set_title('N-particle system time-dependent energy')
+    ax.set_xlabel('Time (ps)')
+    ax.set_ylabel('Energy (eV)')
+    ax.set_ylim(-50,50)
+    plt.legend(loc="lower right", fontsize='small')
 
     fig.savefig('./plots/energy.pdf')
 

@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
     unsigned int total_time = strtoul(argv[1], NULL, 10);
     double dt = atof(argv[2]);             //in picoseconds, e.g. 0.001 = 1 femtosecond
     unsigned int n_timesteps = total_time/dt;
+    double tau_t = 100*dt;  // Time constant for temperature equilibration
+    double time_equilibration = 20*tau_t; // Duration of equilibration procedure
     double inter_temp = atof(argv[3]);
     double t_eq = atof(argv[4]);
     double p_eq = atof(argv[5]);
@@ -91,23 +93,48 @@ int main(int argc, char *argv[])
     printf("Long routine: Simulating Time Evolution for the Kinetic, \n");
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
-    verlet_inter_melting(n_timesteps, a0, Nc, N, m, v_0, pos,
+    verlet_interm_scaled(n_timesteps, a0, Nc, N, m, v_0, pos,
+      T, V, E, dt, tau_t, time_equilibration,
+      inter_temp, t_eq, p_eq, Temp, Pressure,
+      a0_ev, time_array);
+    /*verlet_inter_melting(n_timesteps, a0, Nc, N, m, v_0, pos,
       T, V, E, dt, inter_temp, t_eq, p_eq, Temp, Pressure, a0_ev, time_array);
+    */
 
     //Calculating time averages for Pressure and Temperature
     //calc_time_average(n_timesteps, Temp, Temp_exp);
     //calc_time_average(n_timesteps, Pressure, Pressure_exp);
 
     // Calculating averages after equilibration
-    double Temp_equilibrium = calc_eq_average(n_timesteps, Temp, n_timesteps/2);
-    double Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure, 200);
-    double a0_equilibrium = calc_eq_average(n_timesteps, a0_ev, n_timesteps/2);
+    double Temp_equilibrium = calc_eq_average(n_timesteps, Temp,
+      n_timesteps-time_equilibration);
+    double Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure,
+      n_timesteps-time_equilibration);
+    double a0_equilibrium = calc_eq_average(n_timesteps, a0_ev,
+      n_timesteps-time_equilibration);
     double K_equilibrium = calc_eq_average(n_timesteps, T, n_timesteps/2);
     double V_equilibrium = calc_eq_average(n_timesteps, V, n_timesteps/2);
 
     // Calculating variances after Equilibration
-    double K_var = calc_eq_var(n_timesteps, T, K_equilibrium, n_timesteps/2);
-    double V_var = calc_eq_var(n_timesteps, V, V_equilibrium, n_timesteps/2);
+    double K_var = calc_eq_var(n_timesteps, T, K_equilibrium,
+      n_timesteps-time_equilibration);
+    double V_var = calc_eq_var(n_timesteps, V, V_equilibrium,
+      n_timesteps-time_equilibration);
+
+    /* Calculating heat capacity using either kinetic
+     * or potential energy variance (eq. 57 and 58)
+     */
+
+    double cv_K = calc_cv_NVE(N, Temp_equilibrium, K_var);
+    double cv_V = calc_cv_NVE(N, Temp_equilibrium, V_var);
+
+    //Shift Potential and Total Energy so E[0] = 0
+    const double E_shift = E[n_timesteps];
+      for(int i = 0; i < n_timesteps; i++){
+          V[i] -= E_shift;
+          E[i] -= E_shift;
+      }
+
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
@@ -119,10 +146,14 @@ int main(int argc, char *argv[])
     printf("T: %f\n", Temp_equilibrium);
     printf("P: %f\n", Pressure_equilibrium);
     printf("a0: %f\n", a0_equilibrium);
-    printf("Kinetic: %f\n", K_equilibrium);
-    printf("Potential: %f\n", V_equilibrium);
+    //printf("Kinetic: %f\n", K_equilibrium);
+    //printf("Potential: %f\n", V_equilibrium);
 
-    printf("Variance from the mean values after equilibration:\n");
-    printf("var Kinetic: %f\n", K_var);
-    printf("var Potential: %f\n", V_var);
+    //printf("Variance from the mean values after equilibration:\n");
+    //printf("var Kinetic: %f\n", K_var);
+    //printf("var Potential: %f\n", V_var);
+
+    printf("Heat capacity using either kinetic or potential energy variances:\n");
+    printf("Cv_K: %f\n", cv_K);
+    printf("Cv_V: %f\n", cv_V);
 }
