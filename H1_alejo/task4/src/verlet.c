@@ -255,16 +255,21 @@ void lattice_velocity_verlet_scaled(int n_timesteps, double a0, double Nc,
     }
 }
 
-void verlet_inter_melting(int n_timesteps, double a0, double Nc,
+void verlet_inter_melting(unsigned int n_timesteps, double a0, double Nc,
   int n_particles, double m[n_particles], double v[n_particles][3],
   double q[n_particles][3], double T[n_timesteps], double V[n_timesteps],
   double E[n_timesteps], double dt, double inter_temp, double temp_eq,
-  double pressure_eq, double Temp[n_timesteps], double Pressure[n_timesteps])
+  double pressure_eq, double Temp[n_timesteps], double Pressure[n_timesteps],
+  double a0_ev[n_timesteps], double time_array[n_timesteps+1])
 {
     double a[n_particles][3];
     double alpha_t, alpha_p, volume, virial;
     double L = a0*Nc;
-    double kappa = 1.385e-6; //at 300K, http://www.knowledgedoor.com/2/elements_handbook/aluminum.html, converted to bars
+    double kappa = 1.385e-6;
+    //at 300K, http://www.knowledgedoor.com/2/elements_handbook/aluminum.html, converted to bars
+
+    FILE *fp = fopen("./output/positions.csv", "w");
+    fprintf(fp, "time, x1, y1, x1, x2, y2, z2, x3, y3, z3\n");
 
     //Fills array with forces every particle experiences
     get_forces_AL(a, q, L, n_particles);
@@ -275,6 +280,20 @@ void verlet_inter_melting(int n_timesteps, double a0, double Nc,
         a[i][1] /= m[i];
         a[i][2] /= m[i];
     }
+
+    //Save values for the initial conditions
+    a0_ev[0] = a0;
+    V[0] = get_energy_AL(q, L, n_particles);
+    E[0] = T[0] + V[0];
+    virial = get_virial_AL(q, L, n_particles);
+    volume = calc_volume(Nc, a0);
+    Temp[0] = calc_temp(T[0], n_particles);
+    Pressure[0] = calc_pressure(volume, T[0], virial);
+
+    fprintf(fp, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", time_array[0],
+    q[0][0], q[0][1], q[0][2],
+    q[127][0], q[127][1], q[127][2],
+    q[255][0], q[255][1], q[255][2]);
 
     //One verlet step
     for (int i = 1; i < n_timesteps + 1; i++) {
@@ -317,7 +336,9 @@ void verlet_inter_melting(int n_timesteps, double a0, double Nc,
         Temp[i] = calc_temp(T[i], n_particles);
         Pressure[i] = calc_pressure(volume, T[i], virial);
 
-        // Melt the system to an intermediate temperature higher than 700ºC
+        a0_ev[i] = a0;
+
+        // Melt the system to an intermediate temperature higher than T = 973.15K
         if(i < n_timesteps/2){
             alpha_t = sqrt(calc_alpha_t(Temp[i], inter_temp,  dt*100, dt));
             alpha_p = cbrt(calc_alpha_p(Pressure[i], pressure_eq, dt*100, dt,
@@ -334,11 +355,11 @@ void verlet_inter_melting(int n_timesteps, double a0, double Nc,
                 q[j][2] *= alpha_p;
 
                 a0 *= alpha_p;
-                L *= alpha_p;
+                L = a0*Nc;
             }
         }
 
-        // Equilibrate to T = 700ºC
+        // Equilibrate to T = 973.15K
         if(i >= n_timesteps/2){
             alpha_t = sqrt(calc_alpha_t(Temp[i], temp_eq,  dt*100, dt));
             alpha_p = cbrt(calc_alpha_p(Pressure[i], pressure_eq, dt*100, dt,
@@ -355,8 +376,13 @@ void verlet_inter_melting(int n_timesteps, double a0, double Nc,
                 q[j][2] *= alpha_p;
 
                 a0 *= alpha_p;
-                L *= alpha_p;
+                L = a0*Nc;
             }
         }
+        fprintf(fp, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n", time_array[i],
+        q[0][0], q[0][1], q[0][2],
+        q[127][0], q[127][1], q[127][2],
+        q[255][0], q[255][1], q[255][2]);
     }
+    fclose(fp);
 }

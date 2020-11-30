@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
     double t_eq = atof(argv[4]);
     double p_eq = atof(argv[5]);
 
-    //Clear screen before printing results
-    //system("clear");
+
+    //system("clear"); //Clear screen before printing results
     printf("Total Time:            %d ps\n", total_time);
     printf("Time step size:        %f\n", dt);
     printf("Number of time steps:  %d\n", n_timesteps);
@@ -55,22 +55,19 @@ int main(int argc, char *argv[])
     //Lattice parameters
     const unsigned int Nc = 4;
     const unsigned int N = 4*Nc*Nc*Nc; // 4 total atoms in an FCC unit cell
-    const double a0 = 4.030283615073347; //Å
+    const double a0 = 4.030037915453137; //Å
 
     double pos[N][3];
     double v_0[N][3];
     double m[N];
     double time_array[n_timesteps];
-    double Temp_equilibrium = 0;
-    double Pressure_equilibrium = 0;
 
     double *T = calloc(n_timesteps+1, sizeof(double));
     double *V = calloc(n_timesteps+1, sizeof(double));
     double *E = calloc(n_timesteps+1, sizeof(double));
     double *Temp = calloc(n_timesteps+1, sizeof(double));
     double *Pressure = calloc(n_timesteps+1, sizeof(double));
-    double *Temp_exp = calloc(n_timesteps+1, sizeof(double));
-    double *Pressure_exp = calloc(n_timesteps+1, sizeof(double));
+    double *a0_ev = calloc(n_timesteps+1, sizeof(double));
 
     /* Initial conditions */
     /* Displacements in Ångstroms */
@@ -95,29 +92,25 @@ int main(int argc, char *argv[])
     printf("Potential, Total Energy and virial term using Verlet. Scaling \n");
     printf("of velocities and positions are done at each time step.\n");
     verlet_inter_melting(n_timesteps, a0, Nc, N, m, v_0, pos,
-      T, V, E, dt, inter_temp, t_eq, p_eq, Temp, Pressure);
-
-    const double E_shift = E[0];
-    for(int i = 0; i < n_timesteps; i++){
-        V[i] -= E_shift;
-        E[i] -= E_shift;
-    }
+      T, V, E, dt, inter_temp, t_eq, p_eq, Temp, Pressure, a0_ev, time_array);
 
     //Calculating time averages for Pressure and Temperature
-    calc_time_average(n_timesteps, Temp, Temp_exp);
-    calc_time_average(n_timesteps, Pressure, Pressure_exp);
+    //calc_time_average(n_timesteps, Temp, Temp_exp);
+    //calc_time_average(n_timesteps, Pressure, Pressure_exp);
 
     // Calculating averages after equilibration for Pressure and Temperature
-    Temp_equilibrium = calc_eq_average(n_timesteps, Temp, n_timesteps/2);
-    Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure, 200);
+    double Temp_equilibrium = calc_eq_average(n_timesteps, Temp, n_timesteps/2);
+    double Pressure_equilibrium = calc_eq_average(n_timesteps, Pressure, 200);
+    double a0_equilibrium = calc_eq_average(n_timesteps, a0_ev, n_timesteps/2);
 
     printf("Writing Results to Disk\n");
     write_energies_file("./output/energy.csv", time_array, n_timesteps, T, V, E);
     write_temperatures_file("./output/temperature.csv", time_array, n_timesteps, Temp);
     write_temperatures_file("./output/pressure.csv", time_array, n_timesteps, Pressure);
-    write_temperatures_file("./output/temperature_avg.csv", time_array, n_timesteps, Temp_exp);
-    write_temperatures_file("./output/pressure_avg.csv", time_array, n_timesteps, Pressure_exp);
+    write_temperatures_file("./output/a0.csv", time_array, n_timesteps, a0_ev);
+
     printf("Final average values after equilibration:\n");
     printf("T: %f\n", Temp_equilibrium);
     printf("P: %f\n", Pressure_equilibrium);
+    printf("a0: %f\n", a0_equilibrium);
 }
