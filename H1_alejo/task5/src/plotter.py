@@ -74,14 +74,14 @@ if temperature:
     fig.savefig('./plots/temperature.pdf')
 
 if pressure:
-    fig, ax = plt.subplots(figsize=(10,6))
+    fig, ax = plt.subplots(figsize=(10,4))
     array = np.genfromtxt('./output/pressure.csv', delimiter=',', skip_header=1)
 
     ax.plot(array[:, 0], array[:, 1], label="Instantaneous pressure")
     #ax.set_title('Time evolution of the instantaneous pressure')
     ax.set_xlabel('Time (ps)')
     ax.set_ylabel('Pressure (bar)')
-    ax.set_ylim(-50,50)
+    #ax.set_ylim(-50,50)
     plt.legend(fontsize='small', loc='lower right')
 
     fig.savefig('./plots/pressure.pdf')
