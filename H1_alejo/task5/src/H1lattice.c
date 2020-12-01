@@ -32,7 +32,11 @@ void init_fcc(double positions[][3], int N, double lattice_param)
 
 
 /*
- Generates a uniform random displacement between -6.5% and 6.5% the passed lattice parameter for each coordinate in the array.
+ * Generates a uniform random displacement between -6.5% and 6.5% of the given lattice parameter
+ * for each coordinate in the array.
+ * @positions[][3] - array containing the three components of the position of each particle
+ * @N - number of particles
+ * @lattice_param - lattice parameter/length of the unit cell
 */
 void deviate_fcc(double positions[][3], int N, double lattice_param)
 {
