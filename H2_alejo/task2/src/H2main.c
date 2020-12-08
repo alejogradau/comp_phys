@@ -113,7 +113,7 @@ void mc_integration_metropolis(unsigned int N, double alpha)
                     x2_m, y2_m, z2_m);
 
             E_i = local_energy(x1_m, x2_m, y1_m, y2_m, z1_m, z2_m, alpha);
-            fprintf(fp, "%ld, %f\n", i, E_i);
+            fprintf(fp, "%d, %f\n", n_accepted, E_i);
             E_mean += E_i;
             E2_mean += pow(E_i, 2.0);
             n_accepted++;
@@ -136,7 +136,7 @@ void mc_integration_metropolis(unsigned int N, double alpha)
 
 double gen_trial_change(double accepted, double rn)
 {
-    double d = 0.5;
+    double d = 1.5;
     return accepted + d*(rn-0.5);
 }
 
