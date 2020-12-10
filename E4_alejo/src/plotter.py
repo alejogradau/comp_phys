@@ -5,20 +5,32 @@
 ###############################################################################
 
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-trajectories = np.genfromtxt('./out/trajectories.csv', delimiter=',', skip_header=1)
+font = {'size'   : 16}
+mpl.rc('font', **font)
 
-plt.figure(figsize=(10,4))
-plt.plot(trajectories[:, 0], trajectories[:, 1])
-#plt.xlim(0.0,0.1e9)
-#plt.ylim(0.0,3000)
+trajectories = np.genfromtxt('./out/trajectories.csv', delimiter=',', skip_header=1)
+equilibration = 10  # 10 ms
+
+plt.figure(figsize=(8,8))
+plt.scatter(trajectories[:, 0] - equilibration, trajectories[:, 1], s=0.5)
+plt.plot(trajectories[:, 0] - equilibration, trajectories[:, 1])
+plt.xlim(0.0,2.0)
+plt.xlabel("Time (ms)")
+plt.ylabel("Position (nm)")
+plt.ylim(-80,80)
 plt.savefig('./plots/positions.pdf')
 
-plt.figure(figsize=(10,4))
-plt.plot(trajectories[:, 0], trajectories[:, 2])
-#plt.xlim(2200,2300)
+plt.figure(figsize=(8,8))
+plt.scatter(trajectories[:, 0] - equilibration, trajectories[:, 2], s=0.5)
+plt.plot(trajectories[:, 0] - equilibration, trajectories[:, 2])
+plt.xlim(0.0,2.0)
+plt.xlabel("Time (ms)")
+plt.ylabel("Velocity (mm/s)")
+plt.ylim(-2,2)
 plt.savefig('./plots/velocities.pdf')
 
 plt.figure(figsize=(10,4))

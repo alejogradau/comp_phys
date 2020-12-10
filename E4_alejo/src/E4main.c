@@ -67,11 +67,11 @@ int main()
   const double kb = 8.617333262145e-5;  // eV/K
   double tau = 147.3e6;  // picoseconds
   double eta = 1/tau;
-  int n_timesteps = 10000;
+  int n_timesteps = 100000;
   double dt = 1e6;  // picoseconds
   double omega = 2*M_PI*3.1e-9;  // picoseconds^-1
   double c0 = exp(-eta*dt);
-  double vth = sqrt(kb*T/mass)*100000;
+  double vth = sqrt(kb*T/mass);
 
   // RNG's sigmas
   double sigma = 1.0;
@@ -96,7 +96,8 @@ int main()
   BD3(n_timesteps, dt, q_arr, v_arr, a_arr, omega, c0, vth, eta,
       r1, r2, sigma);
 
-  /* Write trajectories and velocities to file */
+  /* Write trajectories, velocities, and accelerations to file
+   */
   write_to_file("./out/trajectories.csv", time_array, q_arr, v_arr, a_arr,
                 n_timesteps);
 }
@@ -188,6 +189,10 @@ void arange(double *array, double start, int len_t, double dt){
 
 /*
  * Writes trajectories and velocities to file
+ * Unit conversion is done to match the plots on the Science paper.
+ * position vs time: (nm) vs (ms)
+ * velocity vs time: (mm/s) vs (ms)
+ *
  * @fname - File name
  * @time_array - array of time values
  * @position - array with particle's positions
@@ -202,8 +207,8 @@ void write_to_file(char *fname, double *time_array,
     fprintf(fp, "time, position, velocity, acceleration\n");
     for(int i = 0; i < n_timesteps; ++i)
     {
-      fprintf(fp, "%f,%f,%f,%f\n", time_array[i],
-	      position[i], velocity[i], acceleration[i]);
+      fprintf(fp, "%f,%f,%f,%f\n", time_array[i]*(1e-9),
+	      position[i]*(1e-1), velocity[i]*(1e5), acceleration[i]);
     }
     fclose(fp);
 }
