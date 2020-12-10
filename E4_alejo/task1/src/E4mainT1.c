@@ -19,7 +19,7 @@
  * Includes
  *****************************************************************************/
 #include <stdio.h>   //fopen, fprintf
-#include <stdlib.h>  //malloc
+#include <stdlib.h>  //calloc
 #include <stdint.h>  //uint64_t
 #include <math.h>    //pow, fabs function (absolute values double)
 #include <gsl/gsl_rng.h>
@@ -33,8 +33,10 @@ double calc_acc(double q, double omega);
 void arange(double *array, double start, int len_t, double dt);
 void write_to_file(char *fname, double *time_array,
 			   double *position, double *velocity, double *acceleration,
-		     int n_timesteps);
-void BD3(int n_timesteps, double dt,
+		     long int n_timesteps);
+void write_fft_file(char *fname, double *time_array, double *velocity,
+		                long int n_timesteps);
+void BD3(long int n_timesteps, double dt,
          double *q_arr, double *v_arr, double *a_arr,
          double omega, double c0, double vth, double eta,
          gsl_rng * r1, gsl_rng * r2, double sigma);
@@ -67,11 +69,14 @@ int main()
   const double kb = 8.617333262145e-5;  // eV/K
   double tau = 147.3e6;  // picoseconds
   double eta = 1/tau;
-  int n_timesteps = 100000;
+  long int n_timesteps = 100000;
   double dt = 1e6;  // picoseconds
   double omega = 2*M_PI*3.1e-9;  // picoseconds^-1
   double c0 = exp(-eta*dt);
   double vth = sqrt(kb*T/mass);
+  double equilibration_time = 1e10;  // 1e9 is 1 ms.
+  // timestep after which equilibration is already achieved
+  int equilibration_i = equilibration_time/dt;
 
   // RNG's sigmas
   double sigma = 1.0;
@@ -87,6 +92,17 @@ int main()
   q_arr[0] = 10.0;
   v_arr[0] = 10.0;
 
+  printf("Report of Simulation Variables:\n\n");
+  printf("Total Simulation Time: %f ps\n", n_timesteps*dt);
+  printf("Time step size:        %f ps\n", dt);
+  printf("Number of time steps:  %ld\n", n_timesteps);
+  printf("Temperature:           %f K\n", T);
+  printf("Tau:                   %f ps\n", tau);
+  printf("Equilibration Time:    %f ps\n", equilibration_time);
+  printf("Equilibration timestep:%d ps\n", equilibration_i);
+  printf("Initial position:      %f Å\n", q_arr[0]);
+  printf("Initial velocity:      %f Å/ps\n\n", v_arr[0]);
+
 
 
   //printf("omega times 10^9: %lf\n", omega*(1e9));
@@ -96,10 +112,42 @@ int main()
   BD3(n_timesteps, dt, q_arr, v_arr, a_arr, omega, c0, vth, eta,
       r1, r2, sigma);
 
-  /* Write trajectories, velocities, and accelerations to file
+  /* Slice arrays to throw away data points before equilibration.
+   * equilibration_i is the place you want to start your subset.
    */
-  write_to_file("./out/trajectories.csv", time_array, q_arr, v_arr, a_arr,
-                n_timesteps);
+
+  double *sliced_q = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
+  double *sliced_v = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
+  double *sliced_a = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
+  double *sliced_time = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
+  printf("Memory allocated for sliced\n");
+
+  for(long int j = equilibration_i; j < (n_timesteps+1); j++)
+  {
+    sliced_q[j-equilibration_i] = q_arr[j];
+    sliced_v[j-equilibration_i] = v_arr[j];
+    sliced_a[j-equilibration_i] = a_arr[j];
+    sliced_time[j-equilibration_i] = time_array[j] - equilibration_time;
+  }
+  printf("Sliced arrays created\n");
+
+  /* Write trajectories, velocities, and accelerations to file.
+   */
+  write_to_file("./out/non_eq_trajectories.csv", time_array,
+                q_arr, v_arr, a_arr, n_timesteps);
+  printf("Non-equilibrated files created\n");
+
+  /* After equilibration, write trajectories, velocities,
+   * and accelerations to file.
+   */
+  write_to_file("./out/trajectories.csv", sliced_time,
+                sliced_q, sliced_v, sliced_a, (n_timesteps-equilibration_i));
+  printf("Equilibrated files created\n");
+
+  write_fft_file("../task2/out/velocities.csv", sliced_time, sliced_v,
+                 (n_timesteps-equilibration_i));
+  printf("Velocity signal file for FFT created in ../task2/out/\n");
+
 }
 
 /*
@@ -114,7 +162,7 @@ int main()
  * @vth - thermal velocity
 
  */
-void BD3(int n_timesteps, double dt,
+void BD3(long int n_timesteps, double dt,
          double *q_arr, double *v_arr, double *a_arr,
          double omega, double c0, double vth, double eta,
          gsl_rng * r1, gsl_rng * r2, double sigma)
@@ -124,9 +172,9 @@ void BD3(int n_timesteps, double dt,
     double v = v_arr[0];
     double c0_sqrt = sqrt(c0);
     double a = calc_acc(q, omega);
-    printf("%f\n", a*(1e12));
+    //printf("%f\n", a*(1e12));
     a_arr[0] = a;
-    printf("%f\n", a_arr[0]*(1e12));
+    //printf("%f\n", a_arr[0]*(1e12));
 
     for (int i = 1; i < n_timesteps + 1; i++)
     {
@@ -201,14 +249,38 @@ void arange(double *array, double start, int len_t, double dt){
 */
 void write_to_file(char *fname, double *time_array,
 			   double *position, double *velocity, double *acceleration,
-		     int n_timesteps)
+		     long int n_timesteps)
 {
     FILE *fp = fopen(fname, "w");
-    fprintf(fp, "time, position, velocity, acceleration\n");
+    fprintf(fp,
+          "time (ms), position (nm), velocity (mm/s), acceleration (Å/ps^2)\n");
     for(int i = 0; i < n_timesteps; ++i)
     {
       fprintf(fp, "%f,%f,%f,%f\n", time_array[i]*(1e-9),
 	      position[i]*(1e-1), velocity[i]*(1e5), acceleration[i]);
+    }
+    fclose(fp);
+}
+
+/*
+ * Writes velocities to file for FFT analysis
+ * Unit conversion is done to match the plots on the Science paper.
+ * velocity vs time: (mm/s) vs (ms)
+ *
+ * @fname - File name
+ * @time_array - array of time values
+ * @velocity - array with particle's velocities
+ * @n_timesteps - number of timesteps
+*/
+void write_fft_file(char *fname, double *time_array, double *velocity,
+		                long int n_timesteps)
+{
+    FILE *fp = fopen(fname, "w");
+    fprintf(fp,
+          "time (ms), velocity (mm/s)\n");
+    for(int i = 0; i < n_timesteps; ++i)
+    {
+      fprintf(fp, "%f,%f\n", time_array[i]*(1e-9), velocity[i]*(1e5));
     }
     fclose(fp);
 }

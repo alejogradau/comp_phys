@@ -1,4 +1,4 @@
-time, position, velocity, acceleration
+time (ms), position (nm), velocity (mm/s), acceleration (Å/ps^2)
 0.000000,1.000000,1000000.000000,-0.000000
 0.001000,996612.325312,993045.723401,-0.000000
 0.002000,1986103.882122,985763.010427,-0.000000
