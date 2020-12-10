@@ -3,6 +3,8 @@
  *****************************************************************************/
 
 #include <stdio.h>
+#include <math.h>  // round() function
+#include <stdlib.h>
 
  /*
   * constructs a0 array
@@ -102,5 +104,37 @@ void distances_array(unsigned int N, double *distances[N*(N-1)/2],
       }
     }
     distances[k] = rij;
+  }
+}
+
+/*
+ * Calculate the distance between all pairs of particles and return an array
+ * with the integer distances k, given by formula modified from H1a.
+ * @N - number of particles
+ * @positions[N][3] - matrix of atomic positions
+ * @dr - bin size
+ * @int_distances[N*(N-1)/2] - array that stores the integer distance between
+ * all pairs of particles
+ *
+ */
+void int_distances_array(unsigned int N, double *int_distances[N*(N-1)/2],
+  double positions[N][3], double dr)
+{
+  int i,j,l;
+  int array_len = N*(N-1)/2;
+  for (l = 0; l < array_len; l++)
+  {
+    for (i = 0; i < N; i++)
+    {
+      for (j = i + 1; j < N; j++)
+      {
+        double rxij = positions[i][0] - positions[j][0];
+        double ryij = positions[i][1] - positions[j][1];
+        double rzij = positions[i][2] - positions[j][2];
+        double rij_sq = (rxij*rxij + ryij*ryij + rzij*rzij);
+        double rij = sqrt(rij_sq);
+      }
+    }
+    int_distances[l] = round((rij/dr) - 0.5);
   }
 }

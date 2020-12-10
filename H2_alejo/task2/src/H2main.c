@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 void mc_integration_metropolis(unsigned int N, double alpha)
 {
     unsigned int n_accepted = 0;
-    double burn_period = 0.01*N; //"Burn-in" period set to 1% of total run
+    double burn_period = 0.5*N; //"Burn-in" period set to 1% of total run
     // current configurations (m)
     double x1_m, y1_m, z1_m, x2_m, y2_m, z2_m;
     // trial configurations (t)
@@ -65,15 +65,15 @@ void mc_integration_metropolis(unsigned int N, double alpha)
 
     // Generate values for initial guesses
     // Electron 1
-    x1_m = 20.0;
-    y1_m = 20.0;
-    z1_m = 20.0;
+    x1_m = 2000.0;
+    y1_m = 2000.0;
+    z1_m = 2000.0;
     printf("Electron 1 initial coordinates (%f,%f,%f)\n", x1_m, y1_m, z1_m);
 
     // Electron 2
-    x2_m = 20.1;
-    y2_m = 20.1;
-    z2_m = 20.1;
+    x2_m = -2000.0;
+    y2_m = -2000.0;
+    z2_m = -2000.0;
     printf("Electron 1 initial coordinates (%f,%f,%f)\n", x2_m, y2_m, z2_m);
 
     fprintf(fp, "time, local energy\n");
@@ -92,11 +92,15 @@ void mc_integration_metropolis(unsigned int N, double alpha)
 
         //Calculates the relative probability q = p_t/p_m
         double q = relative_prob(x1_m, y1_m, z1_m, x2_m, y2_m, z2_m,
-                          x1_t, y1_t, z1_t, x2_t, y2_t, z2_t,
-                          alpha);
+                                 x1_t, y1_t, z1_t, x2_t, y2_t, z2_t,
+                                 alpha);
+        printf("The relative probability is %f\n", q);
 
         // Decide if trial change is accepted or not based on q
-        if (q > rand_num)
+        double r = rand_num;
+        printf("The random number is: %f\n", r);
+        printf("If %f > %f, update configuration.\n", q, r);
+        if (q > r)
         {
             // Electron 1
             x1_m = x1_t;
@@ -136,8 +140,9 @@ void mc_integration_metropolis(unsigned int N, double alpha)
 
 double gen_trial_change(double accepted, double rn)
 {
-    double d = 1.5;
-    return accepted + d*(rn-0.5);
+    printf("The random number is: %f\n", rn);
+    double d = 2.5;
+    return accepted + (d*(rn-0.5));
 }
 
 /* Calculate the magnitude of a vector, given its cartesian coordinates */
@@ -156,10 +161,10 @@ double vector_magnitude(double x, double y, double z)
 /* Calculate the relative probability (q) of the trial configuration (t)
  * relative to the current configuration (m) */
 double relative_prob(double x1_m, double y1_m, double z1_m,
-  double x2_m, double y2_m, double z2_m,
-  double x1_t, double y1_t, double z1_t,
-  double x2_t, double y2_t, double z2_t,
-  double alpha)
+                     double x2_m, double y2_m, double z2_m,
+                     double x1_t, double y1_t, double z1_t,
+                     double x2_t, double y2_t, double z2_t,
+                     double alpha)
 {
 
   double r1_t = vector_magnitude(x1_t, y1_t, z1_t);
@@ -213,22 +218,23 @@ double local_energy(double x1, double x2,
     double y12 = y1 - y2;
     double z12 = z1 - z2;
 
+    // r12_unitary cartesian coordinates
     double sx12 = sx1 - sx2;
     double sy12 = sy1 - sy2;
     double sz12 = sz1 - sz2;
 
     // Calculate the dot product on the second term of the local energy (eq.7)
-    double r12_dot = sx12*x12 + sy12*y12 + sz12*z12;
+    double r12_dot = (sx12*x12) + (sy12*y12) + (sz12*z12);
 
     double r12 = vector_magnitude(x12, y12, z12);
 
-    double numerator = 1 + alpha*r12;
+    double numerator = 1 + (alpha*r12);
     double numerator_sq = pow(numerator, 2.0);
     double numerator_cub = pow(numerator, 3.0);
-    double numerator_tetra = pow(numerator_sq, 2.0);
+    double numerator_tetra = pow(numerator, 4.0);
 
-    double energy = -4 + r12_dot/(r12*numerator_sq) - 1/(r12*numerator_cub)
-            - 1/(4*numerator_tetra) + 1/r12;
+    double energy = -4 + (r12_dot/(r12*numerator_sq)) - (1/(r12*numerator_cub))
+            - (1/(4*numerator_tetra)) + (1/r12);
 
     return energy;
 }

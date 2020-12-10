@@ -8,11 +8,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-local_energy = np.genfromtxt('./out/local_energy.csv', delimiter=',', skip_header=1)
+trajectories = np.genfromtxt('./out/trajectories.csv', delimiter=',', skip_header=1)
+
 plt.figure(figsize=(10,4))
-plt.scatter(local_energy[:, 0], local_energy[:, 1], s=1)
+plt.plot(trajectories[:, 0], trajectories[:, 1])
+#plt.xlim(0.0,0.1e9)
+#plt.ylim(0.0,3000)
+plt.savefig('./plots/positions.pdf')
+
+plt.figure(figsize=(10,4))
+plt.plot(trajectories[:, 0], trajectories[:, 2])
 #plt.xlim(2200,2300)
-plt.savefig('./plots/local_energy.pdf')
+plt.savefig('./plots/velocities.pdf')
+
+plt.figure(figsize=(10,4))
+plt.plot(trajectories[:, 0], trajectories[:, 3])
+#plt.xlim(2200,2300)
+#plt.ylim(-3.0e-11,3.0e-11)
+plt.savefig('./plots/accelerations.pdf')
 
 #local_energy = np.genfromtxt('./out/local_energy.csv', delimiter=',', skip_header=1)
 #fig, ax = plt.subplots(figsize=(10,4))

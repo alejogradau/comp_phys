@@ -22,4 +22,7 @@ extern void calc_time_average(int n_timesteps, double O[n_timesteps],
 extern void distances_array(unsigned int N, double *distances[N*(N-1)/2],
   double positions[N][3]);
 
+extern void int_distances_array(unsigned int N, double *int_distances[N*(N-1)/2],
+    double positions[N][3], double dr);
+
 #endif
