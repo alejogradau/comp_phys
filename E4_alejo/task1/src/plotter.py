@@ -36,11 +36,11 @@ if(equilibrated):
     plt.ylim(-2,2)
     plt.savefig('./plots/velocities.pdf')
 
-    plt.figure(figsize=(10,4))
-    plt.plot(trajectories[:, 0], trajectories[:, 3])
+    #plt.figure(figsize=(10,4))
+    #plt.plot(trajectories[:, 0], trajectories[:, 3])
     #plt.xlim(2200,2300)
     #plt.ylim(-3.0e-11,3.0e-11)
-    plt.savefig('./plots/accelerations.pdf')
+    #plt.savefig('./plots/accelerations.pdf')
 
 else:
     plt.figure(figsize=(8,8))
@@ -61,11 +61,11 @@ else:
     plt.ylim(-2,2)
     plt.savefig('./plots/velocities.pdf')
 
-    plt.figure(figsize=(10,4))
-    plt.plot(trajectories[:, 0], trajectories[:, 3])
+    #plt.figure(figsize=(10,4))
+    #plt.plot(trajectories[:, 0], trajectories[:, 3])
     #plt.xlim(2200,2300)
     #plt.ylim(-3.0e-11,3.0e-11)
-    plt.savefig('./plots/accelerations.pdf')
+    #plt.savefig('./plots/accelerations.pdf')
 
 #local_energy = np.genfromtxt('./out/local_energy.csv', delimiter=',', skip_header=1)
 #fig, ax = plt.subplots(figsize=(10,4))

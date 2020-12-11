@@ -33,16 +33,17 @@ double calc_acc(double q, double omega);
 void arange(double *array, double start, int len_t, double dt);
 void write_to_file(char *fname, double *time_array,
 			   double *position, double *velocity, double *acceleration,
-		     long int n_timesteps);
+		     double n_timesteps);
 void write_fft_M_files(double *time_array, double *velocity,
-         		           long int n_timesteps, int M);
-void BD3(long int n_timesteps, double dt,
-         double *q_arr, double *v_arr, double *a_arr,
+         		           double n_timesteps, int M, char *cases);
+void BD3(double n_timesteps, double dt,
+         double *q_arr, double *v_arr,
          double omega, double c0, double vth, double eta,
          gsl_rng * r1, gsl_rng * r2, double sigma);
 
 int main()
 {
+  printf("main\n");
   // GENERATE THREE DIFFERENT RANDOM NUMBER GENERATOR
   // Instantiate the random number generator
   const gsl_rng_type * T1;
@@ -67,11 +68,13 @@ int main()
   /* Declaration of variables */
   double T = 297;  // K
   const double kb = 8.617333262145e-5;  // eV/K
-  double tau = 147.3e6;  // picoseconds
+  char cases[80];
+  sprintf(cases, "high");
+  double tau = 48.5e6;  // picoseconds
   double eta = 1/tau;
-  long int n_timesteps = 100000;
-  int M = 10;  // Number of segments of long trajectory
-  n_timesteps *= 10;
+  double n_timesteps = 1e5;  // Updated below
+  int M = 100;  // Number of segments of long trajectory
+  n_timesteps = M*n_timesteps;
   double dt = 1e6;  // picoseconds
   double omega = 2*M_PI*3.1e-9;  // picoseconds^-1
   double c0 = exp(-eta*dt);
@@ -86,8 +89,8 @@ int main()
   /* ARRAYS: Initialize and allocate memory */
   double *q_arr = calloc(n_timesteps+1, sizeof(double));
   double *v_arr = calloc(n_timesteps+1, sizeof(double));
-  double *a_arr = calloc(n_timesteps+1, sizeof(double));
-  double time_array[n_timesteps];
+  //double *a_arr = calloc(n_timesteps+1, sizeof(double));
+  double *time_array = calloc(n_timesteps, sizeof(double));
   arange(time_array, 0, n_timesteps, dt);
 
   /* Initial conditions */
@@ -97,7 +100,7 @@ int main()
   printf("Report of Simulation Variables:\n\n");
   printf("Total Simulation Time: %f ps\n", n_timesteps*dt);
   printf("Time step size:        %f ps\n", dt);
-  printf("Number of time steps:  %ld\n", n_timesteps);
+  printf("Number of time steps:  %f\n", n_timesteps);
   printf("Number of segments:    %d\n", M);
   printf("Temperature:           %f K\n", T);
   printf("Tau:                   %f ps\n", tau);
@@ -112,16 +115,15 @@ int main()
   //printf("pi: %f\n", M_PI);
 
   // Solve Langevin's equation using BD algorithm on page 16.
-  BD3(n_timesteps, dt, q_arr, v_arr, a_arr, omega, c0, vth, eta,
+  BD3(n_timesteps, dt, q_arr, v_arr, omega, c0, vth, eta,
       r1, r2, sigma);
 
   /* Slice arrays to throw away data points before equilibration.
    * equilibration_i is the place you want to start your subset.
    */
-
+  // WORKS WITH n_timesteps+1, but I believe you don't need that +1, you arent using it
   double *sliced_q = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
   double *sliced_v = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
-  double *sliced_a = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
   double *sliced_time = calloc((n_timesteps+1)-equilibration_i, sizeof(double));
   printf("Memory allocated for sliced\n");
 
@@ -129,7 +131,6 @@ int main()
   {
     sliced_q[j-equilibration_i] = q_arr[j];
     sliced_v[j-equilibration_i] = v_arr[j];
-    sliced_a[j-equilibration_i] = a_arr[j];
     sliced_time[j-equilibration_i] = time_array[j] - equilibration_time;
   }
   printf("Sliced arrays created\n");
@@ -147,8 +148,8 @@ int main()
   //              sliced_q, sliced_v, sliced_a, (n_timesteps-equilibration_i));
   //printf("Equilibrated files created\n");
 
-  write_fft_M_files(sliced_time, sliced_v, (n_timesteps-equilibration_i), M);
-  printf("M velocity signal files for FFT created in ./out/\n");
+  write_fft_M_files(sliced_time, sliced_v, (n_timesteps-equilibration_i), M, cases);
+  printf("%d velocity signal files for FFT created in ./out/\n", M);
 
 }
 
@@ -164,8 +165,8 @@ int main()
  * @vth - thermal velocity
 
  */
-void BD3(long int n_timesteps, double dt,
-         double *q_arr, double *v_arr, double *a_arr,
+void BD3(double n_timesteps, double dt,
+         double *q_arr, double *v_arr,
          double omega, double c0, double vth, double eta,
          gsl_rng * r1, gsl_rng * r2, double sigma)
 {
@@ -175,7 +176,6 @@ void BD3(long int n_timesteps, double dt,
     double c0_sqrt = sqrt(c0);
     double a = calc_acc(q, omega);
     //printf("%f\n", a*(1e12));
-    a_arr[0] = a;
     //printf("%f\n", a_arr[0]*(1e12));
 
     for (int i = 1; i < n_timesteps + 1; i++)
@@ -200,7 +200,6 @@ void BD3(long int n_timesteps, double dt,
 	      /* Save position and velocity to arrays */
         q_arr[i] = q;
         v_arr[i] = v;
-        a_arr[i] = a;
     }
 
 }
@@ -251,7 +250,7 @@ void arange(double *array, double start, int len_t, double dt){
 */
 void write_to_file(char *fname, double *time_array,
 			   double *position, double *velocity, double *acceleration,
-		     long int n_timesteps)
+		     double n_timesteps)
 {
     FILE *fp = fopen(fname, "w");
     fprintf(fp,
@@ -275,13 +274,13 @@ void write_to_file(char *fname, double *time_array,
  * @n_timesteps - number of timesteps
 */
 void write_fft_M_files(double *time_array, double *velocity,
-		                long int n_timesteps, int M)
+		                double n_timesteps, int M, char *cases)
 {
     char fname[80];
 
     for(int k = 0; k < M; ++k)
     {
-      sprintf(fname, "./out/velocities_%d.csv", k);
+      sprintf(fname, "../task2bfft/out/velocities_%s_%d.csv", cases, k);
       FILE *fp = fopen(fname, "w");
       fprintf(fp, "time (ms), velocity (mm/s)\n");
 
@@ -290,6 +289,6 @@ void write_fft_M_files(double *time_array, double *velocity,
         fprintf(fp, "%f,%f\n", time_array[i]*(1e-9), velocity[i]*(1e5));
       }
       fclose(fp);
-      printf("velocities_%d.csv file created in ./out/\n", k);
+      printf("velocities_%s_%d.csv file created in ./out/\n", cases, k);
     }
 }

@@ -40,39 +40,58 @@ int main(int argc, char **argv)
    */
 
    // Declare Variables
+   char cases[80];
+   sprintf(cases, "low");
    double dt = 0.001;  // miliseconds
-   double dtau = 5.0*dt;  // Sampling timestep (miliseconds) for fft
+   int factor = 25;
+   double dtau = factor*dt;  // Sampling timestep (miliseconds) for fft
    long int n_timesteps = 100000;
    double equilibration_time = 10;  // ms.
    int equilibration_i = equilibration_time/dt;
-   long int N_POINTS = (n_timesteps+1)-equilibration_i;  // For fft
+   long int N_POINTS = n_timesteps-equilibration_i;  // For fft
+   printf("%ld\n", N_POINTS);
+   long int SAMP_POINTS = N_POINTS/factor;
 
-   double time_array[N_POINTS];
-   double signal[N_POINTS];
+   /* ARRAYS: Initialize and allocate memory */
+   double *time_array = calloc(N_POINTS, sizeof(double));
+   double *signal = calloc(N_POINTS, sizeof(double));
+   double *signal_sampled = calloc(SAMP_POINTS, sizeof(double));
 
-   printf("Reading velocity signal file for FFT\n");
-   read_data("./out/velocities.csv", time_array, signal);
+   char fname1[80];
+   char fname2[80];
+
+   sprintf(fname1, "./out/velocities_%s.csv", cases);
+   printf("Reading %s file for FFT\n", fname1);
+   read_data(fname1, time_array, signal);
+   printf("%s Read\n", fname1);
+
+   printf("Sampling %s using dtau = %d*dt\n", fname1, factor);
+   for(int i = 0; i < SAMP_POINTS; i++)
+   {
+     signal_sampled[i] = signal[i*factor];
+   }
 
   /*
    * Construct array with frequencies
    */
-   double frequencies[N_POINTS];
+   double frequencies[SAMP_POINTS];
    printf("Shifting frequencies\n");
-   fft_freq_shift(frequencies, dtau, N_POINTS);
+   fft_freq_shift(frequencies, dtau, SAMP_POINTS);
 
-  /*
-   * Do the fft
-   */
-   double fftd_data[N_POINTS];
-   printf("Performing FFT\n");
-   powerspectrum(signal, fftd_data, N_POINTS);
-   powerspectrum_shift(fftd_data, N_POINTS);
+   /*
+    * Do the fft
+    */
+    double fftd_data[SAMP_POINTS];
+    printf("Performing FFT\n");
+    powerspectrum(signal_sampled, fftd_data, SAMP_POINTS);
+    powerspectrum_shift(fftd_data, SAMP_POINTS);
 
   /*
    * Write fft and frequencies to file depending on signal analyzed
    */
-   printf("Writing file\n");
-   write_to_file("./out/powerspectrum.csv", frequencies, fftd_data, N_POINTS);
+   sprintf(fname2, "./out/powerspectrum_%s_%ddt.csv", cases, factor);
+   printf("Writing %s file\n", fname2);
+   write_to_file(fname2, frequencies, fftd_data, SAMP_POINTS);
 
    return 0;
 }
