@@ -69,7 +69,7 @@ int main()
   const double kb = 8.617333262145e-5;  // eV/K
   double tau = 147.3e6;  // picoseconds
   double eta = 1/tau;
-  long int n_timesteps = 100000;
+  long int n_timesteps = 300000;
   double dt = 1e6;  // picoseconds
   double omega = 2*M_PI*3.1e-9;  // picoseconds^-1
   double c0 = exp(-eta*dt);

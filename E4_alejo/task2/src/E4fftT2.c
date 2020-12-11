@@ -41,11 +41,11 @@ int main(int argc, char **argv)
 
    // Declare Variables
    char cases[80];
-   sprintf(cases, "low");
+   sprintf(cases, "high");
    double dt = 0.001;  // miliseconds
    int factor = 25;
    double dtau = factor*dt;  // Sampling timestep (miliseconds) for fft
-   long int n_timesteps = 100000;
+   long int n_timesteps = 1000000;
    double equilibration_time = 10;  // ms.
    int equilibration_i = equilibration_time/dt;
    long int N_POINTS = n_timesteps-equilibration_i;  // For fft
