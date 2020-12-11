@@ -1,0 +1,5 @@
+Useful links for git
+
+using git with terminal guide: https://github.com/codepath/ios_guides/wiki/Using-Git-with-Terminal
+gitignore documentation: https://git-scm.com/docs/gitignore
+Remove all folder with name: https://stackoverflow.com/questions/13032701/how-to-remove-folders-with-a-certain-name
