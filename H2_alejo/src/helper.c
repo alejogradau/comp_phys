@@ -115,15 +115,15 @@ double local_energy(double x1, double x2,
  * @ N - Number of time steps
  * @ alpha - Trial wave function parameter
  * @ conf_m - Coordinates of the configuration m (2 electrons)
- * @ pos_large[N/2] - Array of electron 1's radial position. TOO LARGE (N/2)
- * @ N/2: acceptance rate can be up to 50%
+ * @ pos - Array of electron 1's radial position.
  */
  unsigned int mc_integration_metropolis(unsigned int N,
               double alpha, double burn_factor, double d,
-              double *conf_m, double *pos_large, int run)
+              double *conf_m, double *pos, int run)
 {
     unsigned int n_accepted = 0;
     double acceptance_ratio;
+    unsigned int n_production;  // Steps in production run
     double burn_period = burn_factor*N;  //"Burn-in" is burn_factor% of total run
     unsigned int start = round(burn_period);
     double E_i = 0;
@@ -136,7 +136,7 @@ double local_energy(double x1, double x2,
     sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
     FILE *fp = fopen(fname1, "w");
     fprintf(fp, "time, local energy\n");
-    //FILE *gp = fopen("./out/pos_large.csv", "w");
+    //FILE *gp = fopen("./out/pos.csv", "w");
     //fprintf(gp, "time, position\n");
 
     // Declare Variables
@@ -199,11 +199,11 @@ double local_energy(double x1, double x2,
         {
           unsigned int indx = i-start;
           printf("Burn period is over, production run:\n");
-          pos_large[indx] = vector_magnitude(x1_m,y1_m,z1_m);
-          printf("pos_large[%u] = %f\n", indx, pos_large[indx]);
+          pos[indx] = vector_magnitude(x1_m,y1_m,z1_m);
+          printf("pos[%u] = %f\n", indx, pos[indx]);
           E_i = local_energy(x1_m, x2_m, y1_m, y2_m, z1_m, z2_m, alpha);
           fprintf(fp, "%u, %f\n", indx, E_i);
-          //fprintf(gp, "%d, %f\n", indx, pos_large[indx]);
+          //fprintf(gp, "%d, %f\n", indx, pos[indx]);
           E_mean += E_i;
           E2_mean += pow(E_i, 2.0);
         }
@@ -213,10 +213,11 @@ double local_energy(double x1, double x2,
     //fclose(gp);
 
     acceptance_ratio = n_accepted*100/N;
-    E_mean /= (N-start);
-    E2_mean /= (N-start);
+    n_production = N-start;
+    E_mean /= n_production;
+    E2_mean /= n_production;
     sigma_E = sqrt(E2_mean - pow(E_mean, 2.0));
-    sigma_n = sigma_E/sqrt((N-start));
+    sigma_n = sigma_E/sqrt(n_production);
 
     printf("Metropolis integration for N=%u\n", N);
     printf("Symmetric displacement parameter d=%f\n", d);
@@ -385,7 +386,7 @@ void array_to_file(char *fname, int length, double *array)
 
 /* Maps a positions array (pos) to an integer positions array (int_pos), to be
  * used to build a histogram.
- * @ n_accepted - len_acceptedgth of pos and int_pos arrays
+ * @ n_accepted - length of pos and int_pos arrays
  * @ pos[] - positions array
  * @ int_pos[] - integer positions arrays
  * @ n_bins - number of bins on histogram to build

@@ -35,14 +35,16 @@ int main(int argc, char *argv[])
   unsigned int n_accepted;
   int n_bins = 20;
   double bin_size;  // Returned by map_to_int() function
-  double burn_factor = 0.0;
+  double burn_factor = 0.01;  // With extreme initial cond. Neq = 100
   double burn_period = burn_factor*N;  //"Burn-in" is burn_factor% of total run
+  unsigned int start = round(burn_period);
+  unsigned int n_production = N-start;  // Steps in production run
   double d = 1.0;  // symmetric displacement generated in gen_trial_change
   double Z = 27/16;
 
   // Memory allocation
   double *conf_m = calloc(6, sizeof(double));  // Configuration m coordinates
-  double *pos_large = calloc(N, sizeof(double)); // Electron1's rad position. TOO LARGE (N/2)
+  double *pos = calloc(n_production, sizeof(double)); // Electron1's rad position.
 
   // File names
   //char fhistogram[20] = "./out/histogram.csv";
@@ -55,10 +57,10 @@ int main(int argc, char *argv[])
   //conf_m[3] = (rand_num-0.5)*4.0;
   //conf_m[4] = (rand_num-0.5)*4.0;
   //conf_m[5] = (rand_num-0.5)*4.0;
-  conf_m[0] = 15;
+  conf_m[0] = 2;
   conf_m[1] = 0;
   conf_m[2] = 0;
-  conf_m[3] = -15;
+  conf_m[3] = -2;
   conf_m[4] = 0;
   conf_m[5] = 0;
   printf("Electron 1 initial coordinates (%f,%f,%f)\n",
@@ -72,31 +74,30 @@ int main(int argc, char *argv[])
     for(int run = 0; run < n_runs; run++)
     {
       n_accepted = mc_integration_metropolis(N, alpha, burn_factor, d,
-                                             conf_m, pos_large, run);
+                                             conf_m, pos, run);
     }
   }
   //printf("Metropolis done\n");
   //printf("n_accepted = %u\n", n_accepted);
 
-  //double *pos = calloc(n_accepted, sizeof(double)); // E1's rad position.
-  //int *int_pos = calloc(n_accepted, sizeof(int)); // E1's rad int position.
+  int *int_pos = calloc(n_production, sizeof(int)); // E1's rad int position.
   //printf("Memory allocated\n");
-
-  //file_to_array("./out/pos_large.csv", n_accepted, pos);
-  //printf("file_to_array OK\n");
-
   //printf("Slicing array\n");
   //slice_array(N, pos_large, n_accepted, pos);
   //free(pos_large);
   //printf("Array sliced\n");
 
+  //file_to_array("./out/pos_large.csv", n_accepted, pos); // DONT DO THIS
+  //printf("file_to_array OK\n");
+
+
   //printf("array_to_file ...\n");
   //array_to_file("./out/pos.csv", n_accepted, pos);
   //printf("array_to_file OK\n");
 
-  //bin_size = map_to_int(n_accepted, pos, int_pos, n_bins);
+  bin_size = map_to_int(n_production, pos, int_pos, n_bins);
   //printf("Array mapped to integers\n");
 
-  //build_histogram(n_accepted, int_pos);
-  //radial_density_file("./out/radial_density.csv", bin_size, n_bins, Z);
+  build_histogram(n_accepted, int_pos);
+  radial_density_file("./out/radial_density.csv", bin_size+1, n_bins, Z);
 }

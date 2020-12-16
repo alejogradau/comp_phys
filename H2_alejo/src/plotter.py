@@ -9,16 +9,16 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-datapath = './out/task2/'
+datapath = './out/'
 figpath = './plots/'
 dataext = '.csv'
 figext = '.pdf'
 
-Z = 2.0
+Z = 1.7
 title = 'Z = ' + str(Z)
 Zname = '_Z' + str(Z)
 fname1 = 'radial_density'
-fname2 = 'histogram'
+fname2 = 'histogram_Z' + str(Z)
 figsname1 = 'histogram_density_comparison'
 
 fname3 = 'local_energy_alpha0.10_run0'
@@ -27,8 +27,8 @@ figsname2 = fname3
 font = {'size'   : 16}
 mpl.rc('font', **font)
 
-histogram_density_comparison = False
-local_energy = True
+histogram_density_comparison = True
+local_energy = False
 
 if histogram_density_comparison:
     radial_density = np.genfromtxt(datapath + fname1 + Zname + dataext,
