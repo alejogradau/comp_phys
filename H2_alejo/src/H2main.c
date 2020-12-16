@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   double alpha;
   double alpha_range = 0.24-0.06;
   int n_alphas = 1;  // Without considering the first alpha --> one additional
-  int n_runs = 1;
+  int n_runs = 1;  // Number of independent runs
   double dalpha = alpha_range/(n_alphas);
   unsigned int N = 1e6;
   unsigned int n_accepted;
