@@ -8,8 +8,9 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import glob
 
-datapath = './out/'
+datapath = './out/task4/np30/'
 figpath = './plots/'
 dataext = '.csv'
 figext = '.pdf'
@@ -26,11 +27,58 @@ figsname1 = 'histogram_density_comparison'
 fname3 = 'local_energy_alpha0.10_run0'
 figsname2 = fname3
 
+p = 1
+fname4 = 'nablas_p' + str(p)
+
+filelist = glob.glob(datapath+'*.csv')
+
 font = {'size'   : 16}
 mpl.rc('font', **font)
 
-histogram_density_comparison = True
+histogram_density_comparison = False
 local_energy = False
+nablas = False
+steepest = True
+
+if steepest:
+
+    fig, ax = plt.subplots(figsize=(10,6))
+    for fname in filelist:
+        alpha_trajectory = np.genfromtxt(fname, delimiter=',', skip_header=1)
+        p = alpha_trajectory[:, 0]
+        alpha = alpha_trajectory[:, 1]
+        ax.plot(p, alpha, label=fname)
+        #plt.xlim(1,100)
+    plt.legend()
+    ax.set_xlabel(r'Steepest descent step $p$')
+    ax.set_ylabel(r'$\alpha$ ($Å^{-1}$)')
+    fig.savefig('steepest_descent.pdf')
+
+
+if nablas:
+    nablas = np.genfromtxt(datapath + fname4 + dataext,
+                                delimiter=',', skip_header=1)
+    x = nablas[:, 0]
+    nabla_i = nablas[:, 1]
+    nabla_mean = nablas[:, 2]
+
+    fig = plt.figure(figsize=(20,6))
+    ax1 = fig.add_subplot(111)
+    ax1.plot(x, nabla_i)
+    ax1.set_ylabel('nabla_i', color='b')
+    ax1.set_xlabel('Configuration number')
+    #ax1.set_xlim(284530,284570)
+    for tl in ax1.get_yticklabels():
+        tl.set_color('b')
+
+    ax2 = ax1.twinx()
+    ax2.plot(x, nabla_mean, 'r-')
+    ax2.set_ylabel('nabla_mean', color='r')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('r')
+
+    fig.suptitle(fname4, fontsize=16)
+    plt.savefig(figpath + fname4 + figext)
 
 if histogram_density_comparison:
     radial_density = np.genfromtxt(datapath + fname1 + Zname + dataext,

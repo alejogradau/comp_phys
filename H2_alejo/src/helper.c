@@ -271,9 +271,8 @@ double nabla_wavefunction(double alpha, double r12)
     unsigned int n_production;  // Steps in production run
     double burn_period = burn_factor*N;  //"Burn-in" is burn_factor% of total run
     unsigned int start = round(burn_period);
-    double r1;
-    double r2;
     double r12;
+    double E_i;
     double nabla_wave_i;
     double nabla_E_p;
     double sigma_E;
@@ -282,7 +281,8 @@ double nabla_wavefunction(double alpha, double r12)
     //char fname1[80];
     //sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
     char fname2[80];
-    sprintf(fname2, "./out/steepest_descent_np%d_beta%.2f.csv", n_p, beta);
+    sprintf(fname2, "./out/steepest_descent_alpha%.2f_np%d_beta%.2f.csv",
+                                                alpha, n_p, beta);
     //FILE *fp = fopen(fname1, "w");
     //fprintf(fp, "time, local energy\n");
     //FILE *hp = fopen("./out/configurations.csv", "w");
@@ -297,12 +297,11 @@ double nabla_wavefunction(double alpha, double r12)
     for(p = 1; p < n_p; p++)
     {
       unsigned int n_accepted = 0;
-      double E_i = 0;
       double E_mean = 0;
       double nabla_wave_mean = 0;
       double E_nabla_wave_mean = 0;
       double E2_mean = 0;
-      
+
       // Electron 1 initial positions
       x1_m = (rand_num-0.5)*4.0;
       y1_m = (rand_num-0.5)*4.0;
@@ -312,6 +311,11 @@ double nabla_wavefunction(double alpha, double r12)
       y2_m = (rand_num-0.5)*4.0;
       z2_m = (rand_num-0.5)*4.0;
 
+      //char fname3[80];
+      //sprintf(fname3, "./out/nablas_p%d.csv", p);
+      //FILE *kp = fopen(fname3, "w");
+      //fprintf(kp, "i, nabla_wave_i, nabla_wave_mean, E_i, E_mean, E_nabla_wave_mean\n");
+      unsigned int mc_runs = 0;
       srand(time(NULL));
       for (unsigned long i = 0; i < N; i++)
       {
@@ -359,30 +363,41 @@ double nabla_wavefunction(double alpha, double r12)
           {
             unsigned int indx = i-start;
             //printf("Burn period is over, production run:\n");
-            r1 = vector_magnitude(x1_m,y1_m,z1_m);
-            r2 = vector_magnitude(x2_m,y2_m,z2_m);
-            r12 = r1 - r2;
+
+            double x12 = x1_m - x2_m;
+            double y12 = y1_m - y2_m;
+            double z12 = z1_m - z2_m;
+            r12 = vector_magnitude(x12, y12, z12);
             E_i = local_energy(x1_m, x2_m, y1_m, y2_m, z1_m, z2_m, alpha);
             nabla_wave_i = nabla_wavefunction(alpha, r12);
+            //printf("nabla_wave_i = %f\n", nabla_wave_i);
             //fprintf(fp, "%u, %f\n", indx, E_i);
             //fprintf(hp, "%f, %f, %f, %f, %f, %f\n",
             //            x1_m, y1_m, z1_m, x2_m, y2_m, z2_m);
             E_mean += E_i;
             nabla_wave_mean += nabla_wave_i;
+            //printf("nabla_wave_mean = %f\n", nabla_wave_mean);
             E_nabla_wave_mean += (E_i * nabla_wave_i);
+            //fprintf(kp, "%lu, %f, %f, %f, %f, %f\n",
+            //i, nabla_wave_i, nabla_wave_mean, E_i, E_mean, E_nabla_wave_mean);
             E2_mean += pow(E_i, 2.0);
           }
 
+      mc_runs++;
       }
       //fclose(fp);
       //fclose(hp);
+      //fclose(kp);
 
       acceptance_ratio = n_accepted*100/N;
       n_production = N-start;
+      printf("Number of mc_runs %u\n", mc_runs);
+      printf("nabla_wave sum before division = %f\n", nabla_wave_mean);
+      printf("n_production = %u\n", n_production);
 
-      E_mean /= n_production;
-      nabla_wave_mean /= n_production;
-      E_nabla_wave_mean /= n_production;
+      E_mean = E_mean/n_production;
+      nabla_wave_mean = nabla_wave_mean/n_production;
+      E_nabla_wave_mean = E_nabla_wave_mean/n_production;
       nabla_E_p = 2 * (E_nabla_wave_mean - (E_mean * nabla_wave_mean));
       gamma_p = pow(p, -beta);
 
@@ -399,11 +414,15 @@ double nabla_wavefunction(double alpha, double r12)
       printf("Acceptance-rejection ratio:                %f\n", acceptance_ratio);
       printf("E expectation value:                       %f\n", E_mean);
       printf("sigma_E:                                   %f\n", sigma_E);
-      printf("sigma_n:                                   %f\n", sigma_n);
+      printf("sigma_n:                                   %f\n\n", sigma_n);
+
       printf("Steepest descent iteration p =             %d\n", p);
+      printf("E_nabla_wave_mean iteration p =            %f\n", E_nabla_wave_mean);
+      printf("E_mean iteration p:                        %f\n", E_mean);
+      printf("nabla_wave_mean iteration p =              %f\n", nabla_wave_mean);
       printf("gamma in iteration p =                     %f\n", gamma_p);
-      printf("nabla_E in iteration p =                     %f\n", nabla_E_p);
-      printf("Alpha in iteration p =                     %f\n\n\n", alpha);
+      printf("nabla_E in iteration p =                   %f\n", nabla_E_p);
+      printf("Alpha after iteration p =                  %f\n\n\n", alpha);
     }
 }
 

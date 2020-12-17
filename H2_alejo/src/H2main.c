@@ -10,6 +10,10 @@
   * Macro defines
   *************************************************************/
  #define rand_num ((double) rand() / (double) RAND_MAX)
+ // Random alpha within the range (0.06 - 0.24)
+ #define rand_alpha ( (((double) rand() / (double) RAND_MAX)*0.18)+0.06 )
+ // Random alpha within the range (0.6 - 1.0)
+ #define rand_beta ( (((double) rand() / (double) RAND_MAX)*0.4)+0.6 )
 
  /******************************************************************************
   * Includes
@@ -26,12 +30,12 @@
 int main(int argc, char *argv[])
 {
   // Initialize Variables
-  double alpha = 0.2;
-  double alpha_range = 0.24-0.06;
-  int n_alphas = 1;  // Without considering the first alpha --> one additional
+  double alpha = 0.10;
+  double alpha_range = 0.24-0.06;  // (=0.18)
+  int n_alphas = 1;
   int n_runs = 1;  // Number of independent runs
   double dalpha = alpha_range/(n_alphas);
-  unsigned int N = 1e4;
+  unsigned int N = 1e6;
   unsigned int n_accepted;
   int n_bins = 20;
   double bin_size;  // Returned by map_to_int() function
@@ -41,8 +45,11 @@ int main(int argc, char *argv[])
   unsigned int n_production = N-start;  // Steps in production run
   double d = 1.0;  // symmetric displacement generated in gen_trial_change
   double Z = 27/16;
-  int n_p = 10;
-  double beta = 0.75;
+  int n_p = 30;
+  int n_betas = 5;
+  double dbeta = 0.1;
+  double beta = 0.6;
+  int n_steepest = 5;  // Number of independent var. MC runs
 
   // Memory allocation
   double *conf_m = calloc(6, sizeof(double));  // Configuration m coordinates
@@ -72,15 +79,27 @@ int main(int argc, char *argv[])
 
   //for(int i = 0; i < n_alphas; i++)
   //{
-  //  alpha = 0.1 + (i * dalpha);
   //  for(int run = 0; run < n_runs; run++)
   //  {
   //    n_accepted = mc_integration_metropolis(N, alpha, burn_factor, d,
   //                                           conf_m, pos, run);
   //  }
+  //  alpha += dalpha;
   //}
 
-  variational_mc(N, alpha, burn_factor, d, n_p, beta);
+  //for(int i = 0; i < n_betas; i++)
+  //{
+  //  variational_mc(N, alpha, burn_factor, d, n_p, beta);
+  //  beta += dbeta;
+  //}
+
+  for(int i = 0; i < n_steepest; i++)
+  {
+    alpha = rand_alpha;
+    beta = rand_beta;
+    variational_mc(N, alpha, burn_factor, d, n_p, beta);
+  }
+
   //printf("Metropolis done\n");
   //printf("n_accepted = %u\n", n_accepted);
 
