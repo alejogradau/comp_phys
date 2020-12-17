@@ -51,18 +51,18 @@ int main(int argc, char *argv[])
 
 
   // Generate random initial configurations within the range (-2.0, 2.0)
-  //conf_m[0] = (rand_num-0.5)*4.0;
-  //conf_m[1] = (rand_num-0.5)*4.0;
-  //conf_m[2] = (rand_num-0.5)*4.0;
-  //conf_m[3] = (rand_num-0.5)*4.0;
-  //conf_m[4] = (rand_num-0.5)*4.0;
-  //conf_m[5] = (rand_num-0.5)*4.0;
-  conf_m[0] = 2;
-  conf_m[1] = 0;
-  conf_m[2] = 0;
-  conf_m[3] = -2;
-  conf_m[4] = 0;
-  conf_m[5] = 0;
+  conf_m[0] = (rand_num-0.5)*4.0;
+  conf_m[1] = (rand_num-0.5)*4.0;
+  conf_m[2] = (rand_num-0.5)*4.0;
+  conf_m[3] = (rand_num-0.5)*4.0;
+  conf_m[4] = (rand_num-0.5)*4.0;
+  conf_m[5] = (rand_num-0.5)*4.0;
+  //conf_m[0] = 2;
+  //conf_m[1] = 0;
+  //conf_m[2] = 0;
+  //conf_m[3] = -2;
+  //conf_m[4] = 0;
+  //conf_m[5] = 0;
   printf("Electron 1 initial coordinates (%f,%f,%f)\n",
           conf_m[0], conf_m[1], conf_m[2]);
   printf("Electron 2 initial coordinates (%f,%f,%f)\n",
@@ -96,8 +96,8 @@ int main(int argc, char *argv[])
   //printf("array_to_file OK\n");
 
   bin_size = map_to_int(n_production, pos, int_pos, n_bins);
-  //printf("Array mapped to integers\n");
+  printf("Bin size: %f\n", bin_size);
 
   build_histogram(n_accepted, int_pos);
-  radial_density_file("./out/radial_density.csv", bin_size+1, n_bins, Z);
+  radial_density_file("./out/radial_density.csv", bin_size, n_bins, Z);
 }

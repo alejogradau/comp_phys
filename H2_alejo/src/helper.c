@@ -64,8 +64,12 @@ double relative_prob(double x1_m, double y1_m, double z1_m,
   double numerator_t = 1 + (alpha*r12_t);
   double numerator_m = 1 + (alpha*r12_m);
 
+  /* CORRELATED ELECTRONS */
   double q = exp(-4*(r1_tm + r2_tm)) *
               exp((r12_t/numerator_t) - (r12_m/numerator_m));
+
+  /* UNCORRELATED ELECTRONS */
+  //double q = exp(-4*(r1_tm + r2_tm));
   return q;
 }
 
@@ -134,10 +138,12 @@ double local_energy(double x1, double x2,
 
     char fname1[80];
     sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
-    FILE *fp = fopen(fname1, "w");
-    fprintf(fp, "time, local energy\n");
+    //FILE *fp = fopen(fname1, "w");
+    //fprintf(fp, "time, local energy\n");
     //FILE *gp = fopen("./out/pos.csv", "w");
     //fprintf(gp, "time, position\n");
+    FILE *hp = fopen("./out/configurations.csv", "w");
+    fprintf(hp, "x1_m, y1_m, z1_m, x2_m, y2_m, z2_m\n");
 
     // Declare Variables
     double x1_m, y1_m, z1_m, x2_m, y2_m, z2_m;  // current configurations (m)
@@ -177,7 +183,7 @@ double local_energy(double x1, double x2,
         double r = rand_num;
         printf("The random number is: %f\n", r);
         printf("If %f > %f, update configuration.\n", q, r);
-        if (q > r)
+        if (q >= r)
         {
             // Electron 1
             x1_m = x1_t;
@@ -202,15 +208,18 @@ double local_energy(double x1, double x2,
           pos[indx] = vector_magnitude(x1_m,y1_m,z1_m);
           printf("pos[%u] = %f\n", indx, pos[indx]);
           E_i = local_energy(x1_m, x2_m, y1_m, y2_m, z1_m, z2_m, alpha);
-          fprintf(fp, "%u, %f\n", indx, E_i);
+          //fprintf(fp, "%u, %f\n", indx, E_i);
           //fprintf(gp, "%d, %f\n", indx, pos[indx]);
+          fprintf(hp, "%f, %f, %f, %f, %f, %f\n",
+                      x1_m, y1_m, z1_m, x2_m, y2_m, z2_m);
           E_mean += E_i;
           E2_mean += pow(E_i, 2.0);
         }
 
     }
-    fclose(fp);
+    //fclose(fp);
     //fclose(gp);
+    fclose(hp);
 
     acceptance_ratio = n_accepted*100/N;
     n_production = N-start;

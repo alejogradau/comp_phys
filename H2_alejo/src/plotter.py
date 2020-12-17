@@ -15,6 +15,8 @@ dataext = '.csv'
 figext = '.pdf'
 
 Z = 1.7
+Z_cb = Z**3
+dr = 0.242800  # bin_size: to be changed for each run!
 title = 'Z = ' + str(Z)
 Zname = '_Z' + str(Z)
 fname1 = 'radial_density'
@@ -37,7 +39,8 @@ if histogram_density_comparison:
                             delimiter=',', skip_header=1)
 
     x_radial = np.zeros(21)
-    dr = 0.2364817
+    density = Z_cb * 4 * rad_sq * exp(-2 * Z * rad);
+    dr = 0.242800  # bin_size: to be changed for each run!
     for i in range(21):
         x_radial[i] = dr*(i+0.5)
     x = x_radial
