@@ -267,21 +267,15 @@ double nabla_wavefunction(double alpha, double r12)
 {
     int p;
     double gamma_p;
-    unsigned int n_accepted = 0;
     double acceptance_ratio;
     unsigned int n_production;  // Steps in production run
     double burn_period = burn_factor*N;  //"Burn-in" is burn_factor% of total run
     unsigned int start = round(burn_period);
-    double E_i = 0;
     double r1;
     double r2;
     double r12;
     double nabla_wave_i;
-    double E_mean = 0;
-    double nabla_wave_mean = 0;
-    double E_nabla_wave_mean = 0;
     double nabla_E_p;
-    double E2_mean = 0;
     double sigma_E;
     double sigma_n;
 
@@ -302,6 +296,13 @@ double nabla_wavefunction(double alpha, double r12)
 
     for(p = 1; p < n_p; p++)
     {
+      unsigned int n_accepted = 0;
+      double E_i = 0;
+      double E_mean = 0;
+      double nabla_wave_mean = 0;
+      double E_nabla_wave_mean = 0;
+      double E2_mean = 0;
+      
       // Electron 1 initial positions
       x1_m = (rand_num-0.5)*4.0;
       y1_m = (rand_num-0.5)*4.0;
