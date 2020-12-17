@@ -26,12 +26,12 @@
 int main(int argc, char *argv[])
 {
   // Initialize Variables
-  double alpha;
+  double alpha = 0.2;
   double alpha_range = 0.24-0.06;
   int n_alphas = 1;  // Without considering the first alpha --> one additional
   int n_runs = 1;  // Number of independent runs
   double dalpha = alpha_range/(n_alphas);
-  unsigned int N = 1e6;
+  unsigned int N = 1e4;
   unsigned int n_accepted;
   int n_bins = 20;
   double bin_size;  // Returned by map_to_int() function
@@ -41,10 +41,12 @@ int main(int argc, char *argv[])
   unsigned int n_production = N-start;  // Steps in production run
   double d = 1.0;  // symmetric displacement generated in gen_trial_change
   double Z = 27/16;
+  int n_p = 10;
+  double beta = 0.75;
 
   // Memory allocation
   double *conf_m = calloc(6, sizeof(double));  // Configuration m coordinates
-  double *pos = calloc(n_production, sizeof(double)); // Electron1's rad position.
+  //double *pos = calloc(n_production, sizeof(double)); // Electron1's rad position.
 
   // File names
   //char fhistogram[20] = "./out/histogram.csv";
@@ -63,24 +65,26 @@ int main(int argc, char *argv[])
   //conf_m[3] = -2;
   //conf_m[4] = 0;
   //conf_m[5] = 0;
-  printf("Electron 1 initial coordinates (%f,%f,%f)\n",
-          conf_m[0], conf_m[1], conf_m[2]);
-  printf("Electron 2 initial coordinates (%f,%f,%f)\n",
-          conf_m[3], conf_m[4], conf_m[5]);
+  //printf("Electron 1 initial coordinates (%f,%f,%f)\n",
+  //        conf_m[0], conf_m[1], conf_m[2]);
+  //printf("Electron 2 initial coordinates (%f,%f,%f)\n",
+  //        conf_m[3], conf_m[4], conf_m[5]);
 
-  for(int i = 0; i < n_alphas; i++)
-  {
-    alpha = 0.1 + (i * dalpha);
-    for(int run = 0; run < n_runs; run++)
-    {
-      n_accepted = mc_integration_metropolis(N, alpha, burn_factor, d,
-                                             conf_m, pos, run);
-    }
-  }
+  //for(int i = 0; i < n_alphas; i++)
+  //{
+  //  alpha = 0.1 + (i * dalpha);
+  //  for(int run = 0; run < n_runs; run++)
+  //  {
+  //    n_accepted = mc_integration_metropolis(N, alpha, burn_factor, d,
+  //                                           conf_m, pos, run);
+  //  }
+  //}
+
+  variational_mc(N, alpha, burn_factor, d, n_p, beta);
   //printf("Metropolis done\n");
   //printf("n_accepted = %u\n", n_accepted);
 
-  int *int_pos = calloc(n_production, sizeof(int)); // E1's rad int position.
+  //int *int_pos = calloc(n_production, sizeof(int)); // E1's rad int position.
   //printf("Memory allocated\n");
   //printf("Slicing array\n");
   //slice_array(N, pos_large, n_accepted, pos);
@@ -95,9 +99,9 @@ int main(int argc, char *argv[])
   //array_to_file("./out/pos.csv", n_accepted, pos);
   //printf("array_to_file OK\n");
 
-  bin_size = map_to_int(n_production, pos, int_pos, n_bins);
-  printf("Bin size: %f\n", bin_size);
+  //bin_size = map_to_int(n_production, pos, int_pos, n_bins);
+  //printf("Bin size: %f\n", bin_size);
 
-  build_histogram(n_accepted, int_pos);
-  radial_density_file("./out/radial_density.csv", bin_size, n_bins, Z);
+  //build_histogram(n_accepted, int_pos);
+  //radial_density_file("./out/radial_density.csv", bin_size, n_bins, Z);
 }

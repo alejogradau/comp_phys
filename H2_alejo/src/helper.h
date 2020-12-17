@@ -8,6 +8,9 @@ extern unsigned int mc_integration_metropolis(unsigned int N,
               double alpha, double burn_factor, double d,
               double *conf_m, double *pos_large, int run);
 
+extern void variational_mc(unsigned int N, double alpha, double burn_factor,
+                           double d, int n_p, double beta);
+
 extern double gen_trial_change(double accepted, double rn, double d);
 
 extern double vector_magnitude(double x, double y, double z);

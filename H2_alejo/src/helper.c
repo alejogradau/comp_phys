@@ -13,7 +13,7 @@
 
 double gen_trial_change(double accepted, double rn, double d)
 {
-    printf("The random number is: %f\n", rn);
+    //printf("The random number is: %f\n", rn);
     return accepted + (d*(rn-0.5));
 }
 
@@ -237,6 +237,173 @@ double local_energy(double x1, double x2,
     printf("sigma_n:                                   %f\n\n", sigma_n);
 
     return n_accepted;
+}
+
+/* Calculates the gradient of the logarithm of the trial wave function with
+ * respect to the parameter alpha.
+ */
+double nabla_wavefunction(double alpha, double r12)
+{
+  double r12_inv = 1/r12;
+  double numerator = r12_inv + alpha;
+  double numerator_sq = pow(numerator, 2.0);
+  double nabla = - 1/numerator_sq;
+  return nabla;
+}
+
+
+/* Performs variational Monte Carlo using the Metropolis algorithm
+ * and steepest descent.
+ * @ N - Number of time steps
+ * @ alpha - Trial wave function parameter
+ * @ burn_factor - Fraction of steps to be discarded as "burn-in"
+ * @ d - Symmetric displacement parameter
+ * @ pos - Array of electron 1's radial position.
+ * @ n_p - number of iterations of the damped steepest descent
+ * @ beta - exponent of the steepest descent scaling factor
+ */
+ void variational_mc(unsigned int N, double alpha, double burn_factor,
+                     double d, int n_p, double beta)
+{
+    int p;
+    double gamma_p;
+    unsigned int n_accepted = 0;
+    double acceptance_ratio;
+    unsigned int n_production;  // Steps in production run
+    double burn_period = burn_factor*N;  //"Burn-in" is burn_factor% of total run
+    unsigned int start = round(burn_period);
+    double E_i = 0;
+    double r1;
+    double r2;
+    double r12;
+    double nabla_wave_i;
+    double E_mean = 0;
+    double nabla_wave_mean = 0;
+    double E_nabla_wave_mean = 0;
+    double nabla_E_p;
+    double E2_mean = 0;
+    double sigma_E;
+    double sigma_n;
+
+    //char fname1[80];
+    //sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
+    char fname2[80];
+    sprintf(fname2, "./out/steepest_descent_np%d_beta%.2f.csv", n_p, beta);
+    //FILE *fp = fopen(fname1, "w");
+    //fprintf(fp, "time, local energy\n");
+    //FILE *hp = fopen("./out/configurations.csv", "w");
+    //fprintf(hp, "x1_m, y1_m, z1_m, x2_m, y2_m, z2_m\n");
+    FILE *jp = fopen(fname2, "w");
+    fprintf(jp, "p, alpha_p, E, sigma_n\n");
+
+    // Declare Variables
+    double x1_m, y1_m, z1_m, x2_m, y2_m, z2_m;  // current configurations (m)
+    double x1_t, y1_t, z1_t, x2_t, y2_t, z2_t;  // trial configurations (t)
+
+    for(p = 1; p < n_p; p++)
+    {
+      // Electron 1 initial positions
+      x1_m = (rand_num-0.5)*4.0;
+      y1_m = (rand_num-0.5)*4.0;
+      z1_m = (rand_num-0.5)*4.0;
+      // Electron 2 initial positions
+      x2_m = (rand_num-0.5)*4.0;
+      y2_m = (rand_num-0.5)*4.0;
+      z2_m = (rand_num-0.5)*4.0;
+
+      srand(time(NULL));
+      for (unsigned long i = 0; i < N; i++)
+      {
+          //Generates trial changes based on the current accepted values
+          // Electron 1
+          x1_t = gen_trial_change(x1_m, rand_num, d);
+          y1_t = gen_trial_change(y1_m, rand_num, d);
+          z1_t = gen_trial_change(z1_m, rand_num, d);
+
+          // Electron 2
+          x2_t = gen_trial_change(x2_m, rand_num, d);
+          y2_t = gen_trial_change(y2_m, rand_num, d);
+          z2_t = gen_trial_change(z2_m, rand_num, d);
+
+          //Calculates the relative probability q = p_t/p_m
+          double q = relative_prob(x1_m, y1_m, z1_m, x2_m, y2_m, z2_m,
+                                   x1_t, y1_t, z1_t, x2_t, y2_t, z2_t,
+                                   alpha);
+          //printf("The relative probability is %f\n", q);
+
+          /* Decide if trial change is accepted based on q
+           * If not, the configuration is not updated */
+          double r = rand_num;
+          //printf("The random number is: %f\n", r);
+          //printf("If %f > %f, update configuration.\n", q, r);
+          if (q >= r)
+          {
+              // Electron 1
+              x1_m = x1_t;
+              y1_m = y1_t;
+              z1_m = z1_t;
+              //printf("Electron 1 updated coordinates (%f,%f,%f)\n",
+              //        x1_m, y1_m, z1_m);
+
+              // Electron 2
+              x2_m = x2_t;
+              y2_m = y2_t;
+              z2_m = z2_t;
+              //printf("Electron 2 updated coordinates (%f,%f,%f)\n",
+              //        x2_m, y2_m, z2_m);
+              n_accepted++;
+          }
+
+          if (i >= burn_period)
+          {
+            unsigned int indx = i-start;
+            //printf("Burn period is over, production run:\n");
+            r1 = vector_magnitude(x1_m,y1_m,z1_m);
+            r2 = vector_magnitude(x2_m,y2_m,z2_m);
+            r12 = r1 - r2;
+            E_i = local_energy(x1_m, x2_m, y1_m, y2_m, z1_m, z2_m, alpha);
+            nabla_wave_i = nabla_wavefunction(alpha, r12);
+            //fprintf(fp, "%u, %f\n", indx, E_i);
+            //fprintf(hp, "%f, %f, %f, %f, %f, %f\n",
+            //            x1_m, y1_m, z1_m, x2_m, y2_m, z2_m);
+            E_mean += E_i;
+            nabla_wave_mean += nabla_wave_i;
+            E_nabla_wave_mean += (E_i * nabla_wave_i);
+            E2_mean += pow(E_i, 2.0);
+          }
+
+      }
+      //fclose(fp);
+      //fclose(hp);
+
+      acceptance_ratio = n_accepted*100/N;
+      n_production = N-start;
+
+      E_mean /= n_production;
+      nabla_wave_mean /= n_production;
+      E_nabla_wave_mean /= n_production;
+      nabla_E_p = 2 * (E_nabla_wave_mean - (E_mean * nabla_wave_mean));
+      gamma_p = pow(p, -beta);
+
+      E2_mean /= n_production;
+      sigma_E = sqrt(E2_mean - pow(E_mean, 2.0));
+      sigma_n = sigma_E/sqrt(n_production);
+
+      fprintf(jp, "%d, %f, %f, %f\n", p, alpha, E_mean, sigma_n);
+      alpha -= gamma_p * nabla_E_p;
+
+      printf("Metropolis integration for N =             %u\n", N);
+      printf("Symmetric displacement parameter d =       %f\n", d);
+      printf("Accepted steps (including burn-in period): %d\n", n_accepted);
+      printf("Acceptance-rejection ratio:                %f\n", acceptance_ratio);
+      printf("E expectation value:                       %f\n", E_mean);
+      printf("sigma_E:                                   %f\n", sigma_E);
+      printf("sigma_n:                                   %f\n", sigma_n);
+      printf("Steepest descent iteration p =             %d\n", p);
+      printf("gamma in iteration p =                     %f\n", gamma_p);
+      printf("nabla_E in iteration p =                     %f\n", nabla_E_p);
+      printf("Alpha in iteration p =                     %f\n\n\n", alpha);
+    }
 }
 
 void calc_autocorrelation(unsigned long length, double time_series[length], double autocorrelation[length/2])
