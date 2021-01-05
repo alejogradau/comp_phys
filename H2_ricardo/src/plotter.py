@@ -8,8 +8,9 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import glob
 
-datapath = './out/'
+datapath = './out/mean_energy_alpha/'
 figpath = './plots/'
 dataext = '.csv'
 figext = '.pdf'
@@ -24,13 +25,37 @@ figsname1 = 'histogram_density_comparison'
 fname3 = 'local_energy_alpha0.10_run'
 figsname2 = fname3
 
+filelist = glob.glob(datapath+'*.csv')
+n_alphas = 18
+dalpha = 0.01
+
 font = {'size'   : 16}
 mpl.rc('font', **font)
 
 histogram_density_comparison = False
-local_energy = True
-autoc = True
-block = True
+local_energy = False
+autoc = False
+block = False
+alpha_vs_energy = True
+
+if alpha_vs_energy:
+    alpha = np.zeros(n_alphas)
+    mean_energy = np.zeros(n_alphas)
+    counter = 0
+    for i in range(n_alphas):
+        alpha[i] = 0.06 + i*dalpha
+    for fname in filelist:
+        alpha_energy = np.genfromtxt(fname, delimiter=',', skip_header=1)
+        mean_energy[counter] = alpha_energy[0]
+        print(alpha[counter], mean_energy[counter])
+        counter +=1
+
+    plt.figure(figsize=(10,6))
+    plt.plot(alpha, mean_energy)
+    plt.xlabel(r'$\alpha$')
+    plt.ylabel(r'Mean energy (eV)')
+    plt.savefig('alpha_vs_energy.pdf')
+
 
 if histogram_density_comparison:
     radial_density = np.genfromtxt(datapath + fname1 + Zname + dataext,
@@ -81,7 +106,7 @@ if local_energy:
 #    local_energy3 = np.genfromtxt(datapath + fname3 + "2" + dataext, delimiter=',', skip_header=1)
 #    local_energy4 = np.genfromtxt(datapath + fname3 + "3" + dataext, delimiter=',', skip_header=1)
 #    local_energy5 = np.genfromtxt(datapath + fname3 + "4" + dataext, delimiter=',', skip_header=1)
-                    
+
     fig, ax = plt.subplots(figsize=(10,6))
     ax.plot(local_energy1)
     ax.set_xscale('log')
@@ -98,7 +123,7 @@ if autoc:
     ax.set_xlabel('k')
     ax.set_ylabel('ACF')
     fig.savefig('./out/autocorrelation.pdf')
-    
+
     fig, ax = plt.subplots(figsize=(10,6))
     ax.plot(autocorrelation[0:400, 0], autocorrelation[0:400, 1])
     ax.set_xlabel('k')

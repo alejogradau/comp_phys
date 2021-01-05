@@ -26,21 +26,21 @@
 int main(int argc, char *argv[])
 {
   // Initialize Variables
-  double alpha;
+  double alpha = 0.06;
   double alpha_range = 0.24-0.06;
   int n_alphas = 20;  // Without considering the first alpha --> one additional
   int n_runs = 1;  // Number of independent runs
   double dalpha = alpha_range/(n_alphas);
   unsigned int N = 1e6;
   unsigned int n_accepted;
-  int n_bins = 20;
-  double bin_size;  // Returned by map_to_int() function
+  //int n_bins = 20;
+  //double bin_size;  // Returned by map_to_int() function
   double burn_factor = 0.01;  // With extreme initial cond. Neq = 100
   double burn_period = burn_factor*N;  //"Burn-in" is burn_factor% of total run
   unsigned int start = round(burn_period);
   unsigned int n_production = N-start;  // Steps in production run
   double d = 1.0;  // symmetric displacement generated in gen_trial_change
-  double Z = 27/16;
+  //double Z = 27/16;
 
   // Memory allocation
   double *conf_m = calloc(6, sizeof(double));  // Configuration m coordinates
@@ -56,10 +56,9 @@ int main(int argc, char *argv[])
 //  conf_m[3] = -15;
 //  conf_m[4] = 0;
 //  conf_m[5] = 0;
-    
+
 
     for(int i = 0; i < n_alphas; i++){
-        alpha = 0.1 + (i * dalpha);
         for(int run = 0; run < n_runs; run++){
             // Generate random initial configurations within the range (-2.0, 2.0)
             conf_m[0] = (rand_num-0.5)*4.0;
@@ -72,11 +71,11 @@ int main(int argc, char *argv[])
                     conf_m[0], conf_m[1], conf_m[2]);
             printf("Electron 2 initial coordinates (%f,%f,%f)\n",
                     conf_m[3], conf_m[4], conf_m[5]);
-            
-            n_accepted = mc_integration_metropolis(N, alpha, burn_factor, d, conf_m, pos, run);
 
+            n_accepted = mc_integration_metropolis(N, alpha, burn_factor, d, conf_m, pos, run);
             printf("--------------------------------\n\n");
         }
+        alpha += dalpha;
     }
   //printf("Metropolis done\n");
   //printf("n_accepted = %u\n", n_accepted);

@@ -6,7 +6,7 @@
  *****************************************************************************/
 extern unsigned int mc_integration_metropolis(unsigned int N,
               double alpha, double burn_factor, double d,
-              double *conf_m, double *pos_large, int run);
+              double *conf_m, double *pos_large, int run, double ns);
 
 extern void variational_mc(unsigned int N, double alpha, double burn_factor,
                            double d, int n_p, double beta);

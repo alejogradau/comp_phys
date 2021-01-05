@@ -123,7 +123,7 @@ double local_energy(double x1, double x2,
  */
  unsigned int mc_integration_metropolis(unsigned int N,
               double alpha, double burn_factor, double d,
-              double *conf_m, double *pos, int run)
+              double *conf_m, double *pos, int run, double ns)
 {
     unsigned int n_accepted = 0;
     double acceptance_ratio;
@@ -134,20 +134,26 @@ double local_energy(double x1, double x2,
     double E_mean = 0;
     double E2_mean = 0;
     double sigma_E;
-    double sigma_n;
+    double sigma_ns;
 
-    char fname1[80];
-    sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
+    //char fname1[80];
+    //sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
+    //FILE *fp = fopen(fname1, "w");
+    char fname2[80];
+    sprintf(fname2, "./out/mean_energy_alpha%.2f_run%d.csv", alpha, run);
+    FILE *gp = fopen(fname2, "w");
+    fprintf(gp, "E_mean, sigma_E, sigma_ns\n");
     //FILE *fp = fopen(fname1, "w");
     //fprintf(fp, "time, local energy\n");
     //FILE *gp = fopen("./out/pos.csv", "w");
     //fprintf(gp, "time, position\n");
-    FILE *hp = fopen("./out/configurations.csv", "w");
-    fprintf(hp, "x1_m, y1_m, z1_m, x2_m, y2_m, z2_m\n");
+    //FILE *hp = fopen("./out/configurations.csv", "w");
+    //fprintf(hp, "x1_m, y1_m, z1_m, x2_m, y2_m, z2_m\n");
 
     // Declare Variables
     double x1_m, y1_m, z1_m, x2_m, y2_m, z2_m;  // current configurations (m)
     double x1_t, y1_t, z1_t, x2_t, y2_t, z2_t;  // trial configurations (t)
+    double *E_l = calloc(N, sizeof(double));  // Local energy array
 
     // Electron 1 initial positions
     x1_m = conf_m[0];
@@ -176,65 +182,71 @@ double local_energy(double x1, double x2,
         double q = relative_prob(x1_m, y1_m, z1_m, x2_m, y2_m, z2_m,
                                  x1_t, y1_t, z1_t, x2_t, y2_t, z2_t,
                                  alpha);
-        printf("The relative probability is %f\n", q);
+        //printf("The relative probability is %f\n", q);
 
         /* Decide if trial change is accepted based on q
          * If not, the configuration is not updated */
         double r = rand_num;
-        printf("The random number is: %f\n", r);
-        printf("If %f > %f, update configuration.\n", q, r);
+        //printf("The random number is: %f\n", r);
+        //printf("If %f > %f, update configuration.\n", q, r);
         if (q >= r)
         {
             // Electron 1
             x1_m = x1_t;
             y1_m = y1_t;
             z1_m = z1_t;
-            printf("Electron 1 updated coordinates (%f,%f,%f)\n",
-                    x1_m, y1_m, z1_m);
+            //printf("Electron 1 updated coordinates (%f,%f,%f)\n",
+            //        x1_m, y1_m, z1_m);
 
             // Electron 2
             x2_m = x2_t;
             y2_m = y2_t;
             z2_m = z2_t;
-            printf("Electron 2 updated coordinates (%f,%f,%f)\n",
-                    x2_m, y2_m, z2_m);
+            //printf("Electron 2 updated coordinates (%f,%f,%f)\n",
+            //        x2_m, y2_m, z2_m);
             n_accepted++;
         }
 
         if (i >= burn_period)
         {
-          unsigned int indx = i-start;
-          printf("Burn period is over, production run:\n");
-          pos[indx] = vector_magnitude(x1_m,y1_m,z1_m);
-          printf("pos[%u] = %f\n", indx, pos[indx]);
+          //unsigned int indx = i-start;
+          //printf("Burn period is over, production run:\n");
+          //pos[indx] = vector_magnitude(x1_m,y1_m,z1_m);
+          //printf("pos[%u] = %f\n", indx, pos[indx]);
           E_i = local_energy(x1_m, x2_m, y1_m, y2_m, z1_m, z2_m, alpha);
+          E_l[i] = E_i;
           //fprintf(fp, "%u, %f\n", indx, E_i);
           //fprintf(gp, "%d, %f\n", indx, pos[indx]);
-          fprintf(hp, "%f, %f, %f, %f, %f, %f\n",
-                      x1_m, y1_m, z1_m, x2_m, y2_m, z2_m);
+          //fprintf(hp, "%f, %f, %f, %f, %f, %f\n",
+          //            x1_m, y1_m, z1_m, x2_m, y2_m, z2_m);
           E_mean += E_i;
           E2_mean += pow(E_i, 2.0);
         }
 
     }
     //fclose(fp);
+    //printf("fp closed\n");
     //fclose(gp);
-    fclose(hp);
+    //fclose(hp);
 
     acceptance_ratio = n_accepted*100/N;
     n_production = N-start;
     E_mean /= n_production;
     E2_mean /= n_production;
     sigma_E = sqrt(E2_mean - pow(E_mean, 2.0));
-    sigma_n = sigma_E/sqrt(n_production);
+    sigma_ns = sigma_E/sqrt(n_production/ns);
+
+    fprintf(gp, "%f, %f, %f\n", E_mean, sigma_E, sigma_ns);
+    fclose(gp);
 
     printf("Metropolis integration for N=%u\n", N);
+    printf("Alpha = %f\n", alpha);
     printf("Symmetric displacement parameter d=%f\n", d);
     printf("Accepted steps (including burn-in period): %d\n", n_accepted);
     printf("Acceptance-rejection ratio:                %f\n", acceptance_ratio);
     printf("E expectation value:                       %f\n", E_mean);
     printf("sigma_E:                                   %f\n", sigma_E);
-    printf("sigma_n:                                   %f\n\n", sigma_n);
+    printf("sigma_ns:                                  %f\n\n", sigma_ns);
 
     return n_accepted;
 }
@@ -361,7 +373,7 @@ double nabla_wavefunction(double alpha, double r12)
 
           if (i >= burn_period)
           {
-            unsigned int indx = i-start;
+            //unsigned int indx = i-start;
             //printf("Burn period is over, production run:\n");
 
             double x12 = x1_m - x2_m;

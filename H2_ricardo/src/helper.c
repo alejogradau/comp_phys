@@ -154,7 +154,7 @@ double calc_autocorrelation(double alpha, int run, unsigned long length, double 
         fprintf(fp, "%ld, %f\n", k, autocorrelation[k]);
     }
     fclose(fp);
-    
+
     return autocsum;
 }
 
@@ -203,7 +203,7 @@ double calc_block_average(double alpha, int run, unsigned long length, double ti
         }
     }
     fclose(fp);
-    
+
     printf("------------------------------------------------------\n");
     printf("Block averaging");
     printf("s: %f\n", s);
@@ -396,11 +396,15 @@ void radial_density_file(char *fname, double bin_size, int n_bins, double Z)
     double E_mean = 0;
     double E2_mean = 0;
     double sigma_E;
-    double sigma_n;
+    //double sigma_n;
 
     char fname1[80];
     sprintf(fname1, "./out/local_energy_alpha%.2f_run%d.csv", alpha, run);
     FILE *fp = fopen(fname1, "w");
+    char fname2[80];
+    sprintf(fname2, "./out/mean_energy_alpha%.2f_run%d.csv", alpha, run);
+    FILE *gp = fopen(fname2, "w");
+    fprintf(gp, "E_mean, sigma_E, sigma_n_autoc, sigma_n_block\n");
 //    fprintf(fp, "time, local energy\n");
     //FILE *gp = fopen("./out/pos.csv", "w");
     //fprintf(gp, "time, position\n");
@@ -408,7 +412,7 @@ void radial_density_file(char *fname, double bin_size, int n_bins, double Z)
     // Declare Variables
     double x1_m, y1_m, z1_m, x2_m, y2_m, z2_m;  // current configurations (m)
     double x1_t, y1_t, z1_t, x2_t, y2_t, z2_t;  // trial configurations (t)
-    double *E_l = calloc(N, sizeof(double));
+    double *E_l = calloc(N, sizeof(double));  // Local energy array
 
     // Electron 1 initial positions
     x1_m = conf_m[0];
@@ -420,7 +424,8 @@ void radial_density_file(char *fname, double bin_size, int n_bins, double Z)
     z2_m = conf_m[5];
 
     srand(time(NULL));
-     for (unsigned long i = 0; i < N+burn_period; i++){
+     for (unsigned long i = 0; i < N; i++){
+        //printf("%lu\n", i);
          //Generates trial changes based on the current accepted values
          // Electron 1
          x1_t = gen_trial_change(x1_m, rand_num, d);
@@ -431,10 +436,10 @@ void radial_density_file(char *fname, double bin_size, int n_bins, double Z)
          x2_t = gen_trial_change(x2_m, rand_num, d);
          y2_t = gen_trial_change(y2_m, rand_num, d);
          z2_t = gen_trial_change(z2_m, rand_num, d);
-         
+
          //Calculates the relative probability q = p_t/p_m
          double q = relative_prob(x1_m, y1_m, z1_m, x2_m, y2_m, z2_m, x1_t, y1_t, z1_t, x2_t, y2_t, z2_t, alpha);
-         
+
          /* Decide if trial change is accepted based on q
           * If not, the configuration is not updated */
          double r = rand_num;
@@ -458,8 +463,9 @@ void radial_density_file(char *fname, double bin_size, int n_bins, double Z)
            E2_mean += pow(E_i, 2.0);
          }
      }
-     
+
     fclose(fp);
+    printf("fp closed\n");
 
     acceptance_ratio = n_accepted*100/N;
     n_production = N-start;
@@ -467,16 +473,20 @@ void radial_density_file(char *fname, double bin_size, int n_bins, double Z)
     E2_mean /= n_production;
     sigma_E = sqrt(E2_mean - pow(E_mean, 2.0));
 
-//     unsigned long length = N;
-//     double *autocorrelation = calloc(length/2, sizeof(double));
-//     double *block_average  = calloc(length/2, sizeof(double));
-//     double s_autoc = calc_autocorrelation(alpha, run, length, E_l, autocorrelation);
-//     double s_block = calc_block_average(alpha, run, length, E_l, block_average);
-     
-//    double sigma_n_autoc = sigma_E/sqrt(n_production/s_autoc);
-//    double sigma_n_block = sigma_E/sqrt(n_production/s_block);
-     
-    
+    //unsigned long length = N;
+    //double *autocorrelation = calloc(length/2, sizeof(double));
+    //double *block_average  = calloc(length/2, sizeof(double));
+    //double s_autoc = calc_autocorrelation(alpha, run, length, E_l, autocorrelation);
+    //double s_block = calc_block_average(alpha, run, length, E_l, block_average);
+
+    //double sigma_n_autoc = sigma_E/sqrt(n_production/s_autoc);
+    //double sigma_n_block = sigma_E/sqrt(n_production/s_block);
+
+    //fprintf(gp, "%f, %f, %f, %f\n",
+    //            E_mean, sigma_E, sigma_n_autoc, sigma_n_block);
+    fprintf(gp, "%f, %f\n", E_mean, sigma_E);
+    fclose(gp);
+
      printf("------------------------------------------------------\n");
      printf("alpha = %f\n", alpha);
     printf("Metropolis integration for N=%u\n", N);
