@@ -106,16 +106,16 @@ void file_to_array(char *fname, unsigned int length, double data[length])
  * @ length - length of the array
  * @ *array - array of double values
  */
-void array_to_file(char *fname, int length, double *array)
+void array_to_file(char *fname, int length, double *array, char *header)
 {
-  printf("opening...\n");
+  //printf("opening...\n");
   FILE *fp = fopen(fname, "w");
-  printf("opened...\n");
-  fprintf(fp, "bin, frequency\n");
-  printf("header...\n");
+  //printf("opened...\n");
+  fprintf(fp, "%s", header);
+  //printf("header...\n");
   for (int i = 0; i < length; i++)
   {
-    printf("%d, %f\n", i, array[i]);
+    //printf("%d, %f\n", i, array[i]);
     fprintf(fp, "%d, %f\n", i, array[i]);
   }
   fclose(fp);

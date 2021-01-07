@@ -20,5 +20,5 @@ extern double vector_magnitude(double x, double y, double z);
 extern void file_to_array(char *fname, unsigned int length,
                           double data[length]);
 
-extern void array_to_file(char *fname, int length, double *array);
+extern void array_to_file(char *fname, int length, double *array, char *header);
 #endif

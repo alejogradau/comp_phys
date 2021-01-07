@@ -12,8 +12,12 @@ import glob
 
 datapath = './out/'
 figpath = './plots/'
-dataext = '.txt'
+dataext = '.csv'
 figext = '.pdf'
+
+fname_grid = 'grid'
+fname_prob = 'prob_density'
+figname_prob = 'prob_density'
 
 Z = 1.7
 Z_cb = Z**3
@@ -34,20 +38,30 @@ filelist = glob.glob(datapath+'*.csv')
 n_alphas = 18
 dalpha = 0.01
 
-fname5 = 'alpha_vs_E_N1e8'
-
 font = {'size'   : 16}
 mpl.rc('font', **font)
 
-histogram_density_comparison = False
-local_energy = False
-nablas = False
-steepest = False
-alpha_vs_energy1 = False
-alpha_vs_energy2 = True
+prob_density = True
 
+if prob_density:
 
-if alpha_vs_energy1:
+    data_x = np.genfromtxt(datapath + fname_grid + dataext,
+                                delimiter=',', skip_header=1)
+
+    data_y = np.genfromtxt(datapath + fname_prob + dataext,
+                                delimiter=',', skip_header=1)
+
+    grid = data_x[:,1]
+    prob = data_y[:,1]
+
+    plt.figure(figsize=(10,6))
+    plt.plot(grid, prob, '--', c='k', label='Gaussian wave packet')
+    plt.xlabel(r'x (Å)')
+    plt.ylabel(r'Probability density distribution')
+    plt.legend()
+    plt.savefig(figpath + figname_prob + figext)
+
+if other:
 
     alpha = np.zeros(n_alphas)
     mean_energy = np.zeros(n_alphas)
@@ -64,48 +78,6 @@ if alpha_vs_energy1:
     plt.plot(alpha, mean_energy)
     plt.xlabel(r'$\alpha$')
     plt.ylabel(r'Mean energy (eV)')
-    plt.savefig('alpha_vs_energy.pdf')
-
-if alpha_vs_energy2:
-
-    N = 100000000
-    s = 4000
-    data = np.genfromtxt(datapath + fname5 + dataext,
-                                delimiter=',', skip_header=1)
-
-    alphas = data[:,0]
-    E_averaged = data[:,1]
-    error_bars = data[:,2]/np.sqrt(5*N/s)
-
-    # Polynomial fit
-    coefs, covar = np.polyfit(alphas, E_averaged, 2,  full = False, cov=True)
-    p = np.poly1d(coefs)
-    xp = np.linspace(0.06, 0.23, 100)
-
-    p0 = coefs[0]
-    p1 = coefs[1]
-
-    err_p0 = covar[0,0]
-    err_p1 = covar[1,1]
-
-    alpha_0 = - (p1)/(2*p0)  # Optimized alpha
-    err_alpha_0 = alpha_0 * np.sqrt(((err_p0/(2*p0))**2)+((err_p1/(2*p1))**2))
-
-    E_min = p(alpha_0)
-
-    print(r'The alpha that optimizes the ground state energy is $\alpha_0$ =: '
-         + str(np.round(alpha_0,4)) + r' $\pm$ ' + str(np.round(err_alpha_0,4)))
-
-    plt.figure(figsize=(10,6))
-    plt.errorbar(alphas, E_averaged, yerr=error_bars, mfc='black', marker='s', ls='', ecolor='blue', label='Variational Monte Carlo')
-    plt.plot(xp, p(xp), '--', c='k', label='quadratic fit')
-    plt.annotate(r'$\alpha_0 =$ ' + str(np.round(alpha_0,4)) + ' $\pm$ '
-                 + str(np.round(err_alpha_0,4)) + 'Å$^{-1}$', (0.16,-2.8735))
-
-    plt.annotate(r'$E_{min} = $' + str(np.round(E_min,3)) + 'eV', (0.16,-2.874))
-    plt.xlabel(r'$\alpha$')
-    plt.ylabel(r'Mean energy (eV)')
-    plt.legend()
     plt.savefig('alpha_vs_energy.pdf')
 
 if steepest:
