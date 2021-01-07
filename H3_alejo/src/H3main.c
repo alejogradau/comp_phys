@@ -20,6 +20,7 @@
  #include <math.h>    //pow, sin, exp
  #include <stdio.h>   //printf
  #include "helper.h"
+ #include "fft.h"
 
 /******************************************************************************
  * MAIN
@@ -42,18 +43,36 @@ int main(int argc, char *argv[])
     // Memory allocation
     double *x_arr = calloc(N, sizeof(double)); // Space grid
     double *p_arr = calloc(N, sizeof(double)); // Momentum array
-    double *gaussian = calloc(N, sizeof(double));  // Gaussian wave packet
-    double *prob_density = calloc(N, sizeof(double));  // Prob. density dist.
+    double *gaussian_x = calloc(N, sizeof(double));  // Gaussian wave packet position
+    double *gaussian_p = calloc(N, sizeof(double));  // Gaussian wave packet momentum
+    double *prob_density_x = calloc(N, sizeof(double));  // Prob. density dist. position
+    double *prob_density_p = calloc(N, sizeof(double));  // Prob. density dist. momentum
 
     // Build space grid
     space_grid(x_arr, N, x0, dx);
-    array_to_file("./out/grid.csv", N, x_arr, "index, grid point\n");
+    array_to_file("./out/grid_x.csv", N, x_arr,
+                  "index, grid point position space\n");
 
     // Build gaussian wave packet and probability density distribution
-    gaussian_packet(gaussian, x_arr, N, x0, p0, d);
-    probability_density(prob_density, gaussian, N);
-    array_to_file("./out/prob_density.csv", N, prob_density,
-                  "index, probability density\n");
+    gaussian_packet(gaussian_x, x_arr, N, x0, p0, d);
+    probability_density(prob_density_x, gaussian_x, N);
+    array_to_file("./out/prob_density_x.csv", N, prob_density_x,
+                  "index, probability density position space\n");
+
+    // Fill in momentum array
+    fft_momentum_shift(p_arr, dx, N);
+    array_to_file("./out/grid_p.csv", N, x_arr,
+                  "index, grid point momentum space\n");
+
+    // Perform fft, and calculate prob. dens. in p space
+    powerspectrum(gaussian_x, gaussian_p, N);
+    powerspectrum_shift(gaussian_p, N);
+    probability_density(prob_density_p, gaussian_p, N);
+    array_to_file("./out/prob_density_p.csv", N, prob_density_p,
+                  "index, probability density momentum space\n");
+
+
+
 
 
 

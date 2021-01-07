@@ -2,7 +2,7 @@
 fft.h
 
 Header file for fft.c
- 
+
 Created by Martin Gren on 2014-10-22.
 */
 
@@ -11,10 +11,10 @@ Created by Martin Gren on 2014-10-22.
 
 extern void powerspectrum(double *, double *, int);
 
-extern void fft_freq(double *, double, int);
+extern void fft_momentum(double *fft_momentum, double dx, int n);
 
 extern void powerspectrum_shift(double *, int);
 
-extern void fft_freq_shift(double *, double, int);
+extern void fft_momentum_shift(double *fft_momentum, double dx, int n);
 
 #endif

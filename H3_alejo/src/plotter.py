@@ -19,47 +19,50 @@ fname_grid = 'grid'
 fname_prob = 'prob_density'
 figname_prob = 'prob_density'
 
-Z = 1.7
-Z_cb = Z**3
-dr = 0.242800  # bin_size: to be changed for each run!
-title = 'Z = ' + str(Z)
-Zname = '_Z' + str(Z)
-fname1 = 'radial_density'
-fname2 = 'histogram_Z' + str(Z)
-figsname1 = 'histogram_density_comparison'
-
-fname3 = 'local_energy_alpha0.10_run0'
-figsname2 = fname3
-
-p = 1
-fname4 = 'nablas_p' + str(p)
-
-filelist = glob.glob(datapath+'*.csv')
-n_alphas = 18
-dalpha = 0.01
+suffix_x = '_x'
+suffix_p = '_p'
 
 font = {'size'   : 16}
 mpl.rc('font', **font)
 
-prob_density = True
+prob_density_x = True
+prob_density_p = True
 
-if prob_density:
+if prob_density_x:
 
-    data_x = np.genfromtxt(datapath + fname_grid + dataext,
+    data_x = np.genfromtxt(datapath + fname_grid + suffix_x + dataext,
                                 delimiter=',', skip_header=1)
 
-    data_y = np.genfromtxt(datapath + fname_prob + dataext,
+    data_y = np.genfromtxt(datapath + fname_prob + suffix_x + dataext,
                                 delimiter=',', skip_header=1)
 
     grid = data_x[:,1]
     prob = data_y[:,1]
 
     plt.figure(figsize=(10,6))
-    plt.plot(grid, prob, '--', c='k', label='Gaussian wave packet')
+    plt.plot(grid, prob, '--', c='k', label='Gaussian wave packet \n position space')
     plt.xlabel(r'x (Å)')
     plt.ylabel(r'Probability density distribution')
     plt.legend()
-    plt.savefig(figpath + figname_prob + figext)
+    plt.savefig(figpath + figname_prob + suffix_x + figext)
+
+if prob_density_p:
+
+    data_p = np.genfromtxt(datapath + fname_grid + suffix_p + dataext,
+                                delimiter=',', skip_header=1)
+
+    data_y = np.genfromtxt(datapath + fname_prob + suffix_p + dataext,
+                                delimiter=',', skip_header=1)
+
+    grid = data_p[:,1]
+    prob = data_y[:,1]
+
+    plt.figure(figsize=(10,6))
+    plt.plot(grid, prob, '--', c='k', label='Gaussian wave packet \n momentum space')
+    plt.xlabel(r'x (Å)')
+    plt.ylabel(r'Probability density distribution')
+    plt.legend()
+    plt.savefig(figpath + figname_prob + suffix_p + figext)
 
 if other:
 

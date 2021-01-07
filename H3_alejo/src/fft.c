@@ -3,6 +3,16 @@
 	Program with powerspectrum from (fast) discrete Fourier transform  using GSL
 	Created by Martin Gren on 2014-10-22
 */
+
+/******************************************************************************
+ * Macro defines
+ *****************************************************************************/
+#define PI 3.14159
+ #define hbar 0.6582  // eV * fs
+
+/******************************************************************************
+ * Includes
+ *****************************************************************************/
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -48,7 +58,7 @@ void powerspectrum(double *data, double *powspec_data, int n) /* input data, out
 }
 
 
-/* Shifts the input powspec_data to center the 0 wavenumber */
+/* Shifts the input powspec_data to center the 0 momentum */
 void powerspectrum_shift(double *powspec_data, int n) /* input data, timestep, number of timesteps */
 {
 	/* Declaration of variables */
@@ -81,19 +91,19 @@ void powerspectrum_shift(double *powspec_data, int n) /* input data, timestep, n
 	}
 }
 
-/* Makes a wavenumber array fft_freq with wavenumber interval 1/(dt*n) --> 2PI/(dx*n) */
-void fft_freq(double *fft_freq, double dt, int n) /* output wavenumber array, timestep, number of timesteps */
+/* Makes a momentum array fft_momentum with momentum interval hbar/(dx*n) */
+void fft_momentum(double *fft_momentum, double dx, int n) /* output momentum array, timestep, number of timesteps */
 {
 	/* Declaration of variables */
     	int i;
 	/* Fill the output aaray with frequencies */
 	for (i = 0; i < n; i++)	{
-		fft_freq[i] = i/dt/n;
+		fft_momentum[i] = hbar/dx/n;
 	}
 }
 
-/* Makes a wavenumber array fft_freq with wavenumber interval 1/(dt*n) with a centered O wavenumber */
-void fft_freq_shift(double *fft_freq, double dt, int n) /* output wavenumber array, timestep, number of timesteps */
+/* Makes a momentum array fft_momentum with momentum interval hbar/(dx*n) with a centered O momentum */
+void fft_momentum_shift(double *fft_momentum, double dx, int n) /* output momentum array, timestep, number of timesteps */
 {
 	/* Declaration of variables */
     	int i;
@@ -101,18 +111,18 @@ void fft_freq_shift(double *fft_freq, double dt, int n) /* output wavenumber arr
 	for (i = 0; i < n; i++)	{
 		if (n % 2) /*if n odd*/	{
 			if (i<=(n-2)/2)	{
-				fft_freq[i] = (-(n-1)/2+i)/dt/n;
+				fft_momentum[i] = (-(n-1)/2+i)/dx/n;
 			}
 			else {
-				fft_freq[i] = (i-(n-1)/2)/dt/n;
+				fft_momentum[i] = (i-(n-1)/2)/dx/n;
 			}
 		}
 		else {
 			if (i<n/2) {
-				fft_freq[i] = (-n/2+i)/dt/n;
+				fft_momentum[i] = (-n/2+i)/dx/n;
 			}
 			else {
-				fft_freq[i] = (i-n/2)/dt/n;
+				fft_momentum[i] = (i-n/2)/dx/n;
 			}
 		}
 	}
