@@ -13,6 +13,9 @@
 #include <stdio.h>   //printf
 #include <complex.h>  // Complex numbers
 
+/* Declare variables */
+double h = 2 * PI * hbar;
+
 /* Build space grid
  * @x_arr - array to be filled in with the space grid points
  * @len_arr - the length of the array
@@ -43,8 +46,8 @@ double *space_grid(double *x_arr, int len_arr,
  * @p0 - Magnitude of the mean momentum
  * @d - Width of the Gaussian
  */
-double *gaussian_packet(double *gaussian, double *x_arr, int len_x,
-                        double x0, double p0, double d)
+double complex *gaussian_packet(double complex *gaussian, double *x_arr,
+                                int len_x, double x0, double p0, double d)
 {
     double d_sq = pow(d, 2.0);
     double factor = 1 / pow(PI * d_sq, 0.25);
@@ -53,7 +56,7 @@ double *gaussian_packet(double *gaussian, double *x_arr, int len_x,
         double x_i0 = x_arr[i] - x0;
         double x_i0_sq = pow(x_i0, 2.0);
         gaussian[i] = factor * exp( - x_i0_sq / (2 * d_sq) )
-                             * exp( I * p0 * x_i0 / hbar );
+                             * cexp( I * p0 * x_i0 / hbar );
     }
     return gaussian;
 }
@@ -63,7 +66,7 @@ double *gaussian_packet(double *gaussian, double *x_arr, int len_x,
  * @gaussian - array with the gaussian wave packet
  * @len_arr - the length of the wavefunction array
  */
-double *probability_density(double *prob_density, double *gaussian,
+double *probability_density(double *prob_density, double complex *gaussian,
                             int len_arr)
 {
     double conj_gaussian;

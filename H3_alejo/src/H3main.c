@@ -21,6 +21,7 @@
  #include <stdio.h>   //printf
  #include "helper.h"
  #include "fft.h"
+ #include <complex.h>  // Complex numbers
 
 /******************************************************************************
  * MAIN
@@ -34,6 +35,8 @@ int main(int argc, char *argv[])
     double m = 104.455;  // eV * (fs)^2 / (Å^2)
     double p0 = sqrt(2 * m * E0);  // expectation value of momentum
 
+    printf("p0 = %f\n", p0);
+    printf("i^2 = %f + i%f\n", creal(I*I), cimag(I*I));
     double xmax = 3 * d;  // Maximum grid reach is 3 times the width of Gaussian
     int N = 101;  // Number of grid points
     double dx = (2*xmax) / (N-1);  // Space grid steps
@@ -43,8 +46,8 @@ int main(int argc, char *argv[])
     // Memory allocation
     double *x_arr = calloc(N, sizeof(double)); // Space grid
     double *p_arr = calloc(N, sizeof(double)); // Momentum array
-    double *gaussian_x = calloc(N, sizeof(double));  // Gaussian wave packet position
-    double *gaussian_p = calloc(N, sizeof(double));  // Gaussian wave packet momentum
+    double complex *gaussian_x = calloc(N, sizeof(double complex));  // Gaussian wave packet position
+    double complex *gaussian_p = calloc(N, sizeof(double complex));  // Gaussian wave packet momentum
     double *prob_density_x = calloc(N, sizeof(double));  // Prob. density dist. position
     double *prob_density_p = calloc(N, sizeof(double));  // Prob. density dist. momentum
 
@@ -61,7 +64,7 @@ int main(int argc, char *argv[])
 
     // Fill in momentum array
     fft_momentum_shift(p_arr, dx, N);
-    array_to_file("./out/grid_p.csv", N, x_arr,
+    array_to_file("./out/grid_p.csv", N, p_arr,
                   "index, grid point momentum space\n");
 
     // Perform fft, and calculate prob. dens. in p space

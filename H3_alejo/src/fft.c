@@ -8,7 +8,7 @@
  * Macro defines
  *****************************************************************************/
 #define PI 3.14159
- #define hbar 0.6582  // eV * fs
+#define hbar 0.6582  // eV * fs
 
 /******************************************************************************
  * Includes
@@ -20,8 +20,11 @@
 #include <gsl/gsl_fft_halfcomplex.h>
 #include <complex.h>
 
+/* Declare variables */
+double planck = 2 * PI * hbar;
+
 /* Makes fft of data and returns the powerspectrum in powspec_data */
-void powerspectrum(double *data, double *powspec_data, int n) /* input data, output powspec_data, number of timesteps */
+void powerspectrum(double *data, double complex *powspec_data, int n) /* input data, output powspec_data, number of timesteps */
 {
 	/* Declaration of variables */
 	int i;
@@ -59,7 +62,7 @@ void powerspectrum(double *data, double *powspec_data, int n) /* input data, out
 
 
 /* Shifts the input powspec_data to center the 0 momentum */
-void powerspectrum_shift(double *powspec_data, int n) /* input data, timestep, number of timesteps */
+void powerspectrum_shift(double complex *powspec_data, int n) /* input data, timestep, number of timesteps */
 {
 	/* Declaration of variables */
 	int i;
@@ -91,18 +94,18 @@ void powerspectrum_shift(double *powspec_data, int n) /* input data, timestep, n
 	}
 }
 
-/* Makes a momentum array fft_momentum with momentum interval hbar/(dx*n) */
+/* Makes a momentum array fft_momentum with momentum interval planck/(dx*n) */
 void fft_momentum(double *fft_momentum, double dx, int n) /* output momentum array, timestep, number of timesteps */
 {
 	/* Declaration of variables */
     	int i;
 	/* Fill the output aaray with frequencies */
 	for (i = 0; i < n; i++)	{
-		fft_momentum[i] = hbar/dx/n;
+		fft_momentum[i] = planck/dx/n;
 	}
 }
 
-/* Makes a momentum array fft_momentum with momentum interval hbar/(dx*n) with a centered O momentum */
+/* Makes a momentum array fft_momentum with momentum interval planck/(dx*n) with a centered O momentum */
 void fft_momentum_shift(double *fft_momentum, double dx, int n) /* output momentum array, timestep, number of timesteps */
 {
 	/* Declaration of variables */
@@ -111,18 +114,18 @@ void fft_momentum_shift(double *fft_momentum, double dx, int n) /* output moment
 	for (i = 0; i < n; i++)	{
 		if (n % 2) /*if n odd*/	{
 			if (i<=(n-2)/2)	{
-				fft_momentum[i] = (-(n-1)/2+i)/dx/n;
+				fft_momentum[i] = (-(n-1)/2+i)*planck/dx/n;
 			}
 			else {
-				fft_momentum[i] = (i-(n-1)/2)/dx/n;
+				fft_momentum[i] = (i-(n-1)/2)*planck/dx/n;
 			}
 		}
 		else {
 			if (i<n/2) {
-				fft_momentum[i] = (-n/2+i)/dx/n;
+				fft_momentum[i] = (-n/2+i)*planck/dx/n;
 			}
 			else {
-				fft_momentum[i] = (i-n/2)/dx/n;
+				fft_momentum[i] = (i-n/2)*planck/dx/n;
 			}
 		}
 	}
